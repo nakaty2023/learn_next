@@ -1,6 +1,6 @@
 services:
   app:
-    image: node:18.17.1
+    image: node:22.7.0
     container_name: next_app
     working_dir: /app
     volumes:
