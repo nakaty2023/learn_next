@@ -135,3 +135,19 @@ export default function InvoiceStatus({ status }: { status: string }) {
     // ...
 )}
 ```
+
+## その他のスタイリング方法
+これまで説明したアプローチに加えて、Next.jsアプリケーションのスタイル設定もできます
+
+.css や .scss ファイルをインポートできる Sass。
+CSS-in-JSライブラリ（styled-jsx、styled-components、emotionなど）。
+詳しくはCSSのドキュメントをご覧ください。
+
+あなたは第2章を完了した。よくできました！
+Next.jsアプリケーションをスタイリングするさまざまな方法について学びました。
+
+次は
+
+3: フォントと画像の最適化
+
+ヒーロー画像とカスタムフォントを追加して、ホームページの作業を続けましょう。
