@@ -108,3 +108,30 @@ export default function Page() {
 変更を保存し、ブラウザでプレビューする。以前と同じ形が表示されるはずです。
 
 TailwindとCSSモジュールは、Next.jsアプリケーションをスタイリングする最も一般的な2つの方法です。どちらを使うかは好みの問題で、同じアプリケーションで両方を使うこともできます！
+
+## clsxライブラリを使ってクラス名を切り替える
+状態やその他の条件に基づいて、要素に条件付きでスタイルを設定する必要がある場合があります。
+
+clsxは、クラス名を簡単に切り替えることができるライブラリです。詳しくはドキュメントを参照されることをお勧めしますが、基本的な使い方は以下の通りです
+
+* ステータスを受け付けるInvoiceStatusコンポーネントを作成したいとします。ステータスは 'pending' または 'paid' です。
+* 'paid' の場合、色は緑にします。'pending' の場合は灰色になります。
+
+clsxを使って、このように条件付きでクラスを適用することができます
+```tsx
+import clsx from 'clsx';
+
+export default function InvoiceStatus({ status }: { status: string }) {
+  return (
+    <span
+      className={clsx(
+        'inline-flex items-center rounded-full px-2 py-1 text-sm',
+        {
+          'bg-gray-100 text-gray-500': status === 'pending',
+          'bg-green-500 text-white': status === 'paid',
+        },
+      )}
+    >
+    // ...
+)}
+```
