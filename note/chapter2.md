@@ -68,3 +68,43 @@ Tailwindで遊んでみましょう！以下のコードをコピーして、/ap
 ※ 黒い三角形が表示される。
 
 伝統的なCSSルールを書きたい場合や、スタイルをJSXから分離したい場合は、CSSモジュールが最適な選択肢となります。
+
+## CSSモジュール
+CSSモジュールでは、自動的にユニークなクラス名を作成することで、CSSをコンポーネントにスコープすることができます。
+
+このコースではTailwindを使い続けますが、CSSモジュールを使って上と同じ結果を得る方法を少し見てみましょう。
+
+app/ui内に、home.module.cssという新しいファイルを作成し、以下のCSSルールを追加します
+
+
+```css
+.shape {
+  height: 0;
+  width: 0;
+  border-bottom: 30px solid black;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+}
+```
+
+次に、/app/page.tsxファイル内でスタイルをインポートし、追加した`<div>`のTailwindクラス名をstyles.shapeに置き換えます
+
+```tsx
+import AcmeLogo from '@/app/ui/acme-logo';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import styles from '@/app/ui/home.module.css';
+
+export default function Page() {
+  return (
+    <main className="flex min-h-screen flex-col p-6">
+      <div className={styles.shape} />
+    // ...
+  )
+}
+```
+
+
+変更を保存し、ブラウザでプレビューする。以前と同じ形が表示されるはずです。
+
+TailwindとCSSモジュールは、Next.jsアプリケーションをスタイリングする最も一般的な2つの方法です。どちらを使うかは好みの問題で、同じアプリケーションで両方を使うこともできます！
