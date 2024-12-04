@@ -144,3 +144,40 @@ Next.jsは、画像のような静的アセットをトップレベルの/public
 * 画像をリサイズして、ビューポートの小さいデバイスに大きな画像を送らないようにする。
 * デフォルトでの画像の遅延読み込み（画像はビューポートに入ると読み込まれます）。
 * ブラウザがサポートしている場合、WebPやAVIFのような最新のフォーマットで画像を提供する。
+
+## デスクトップ・ヒーロー画像を追加する
+`<Image>`コンポーネントを使いましょう。publicフォルダの中を見てみると、hero-desktop.pngとhero-mobile.pngの2つの画像があることがわかります。この2つの画像は全く異なるもので、ユーザーのデバイスがデスクトップかモバイルかによって表示されます。
+
+/app/page.tsxファイルで、next/imageからコンポーネントをインポートします。そして、コメントの下に画像を追加します。
+
+```tsx
+import AcmeLogo from '@/app/ui/acme-logo';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { lusitana } from '@/app/ui/fonts';
+import Image from 'next/image';
+
+export default function Page() {
+  return (
+    // ...
+    <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
+      {/* Add Hero Images Here */}
+      <Image
+        src="/hero-desktop.png"
+        width={1000}
+        height={760}
+        className="hidden md:block"
+        alt="Screenshots of the dashboard project showing desktop version"
+      />
+    </div>
+    //...
+  );
+}
+```
+
+ここでは、幅を1000ピクセル、高さを760ピクセルに設定しています。レイアウトのずれを防ぐために、画像の幅と高さを設定するのは良い習慣です。
+
+また、モバイル画面では画像をDOMから削除するためにhiddenクラスが、デスクトップ画面では画像を表示するためにmd:blockが指定されていることにお気づきでしょう。
+
+これであなたのホームページはこのようになるはずです
+![ホームページの画像](./images/image2.png)
