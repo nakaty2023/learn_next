@@ -181,3 +181,44 @@ export default function Page() {
 
 これであなたのホームページはこのようになるはずです
 ![ホームページの画像](./images/image2.png)
+
+## 実践：モバイル・ヒーロー画像の追加
+次はあなたの番です！先ほど追加した画像の下に、hero-mobile.png用の`<Image>`コンポーネントをもう一つ追加します。
+
+画像の幅は560ピクセル、高さは620ピクセルにします。
+モバイル画面では表示され、デスクトップでは非表示になるはずです。デスクトップとモバイルの画像が正しく入れ替わっているかどうかは、開発ツールを使って確認できます。
+準備ができたら、下のコード・スニペットを展開して解決策を見てください。
+
+/app/page.tsx
+```tsx
+import AcmeLogo from '@/app/ui/acme-logo';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { lusitana } from '@/app/ui/fonts';
+import Image from 'next/image';
+
+export default function Page() {
+  return (
+    // ...
+    <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
+      {/* Add Hero Images Here */}
+      <Image
+        src="/hero-desktop.png"
+        width={1000}
+        height={760}
+        className="hidden md:block"
+        alt="Screenshots of the dashboard project showing desktop version"
+      />
+      <Image
+        src="/hero-mobile.png"
+        width={560}
+        height={620}
+        className="block md:hidden"
+        alt="Screenshot of the dashboard project showing mobile version"
+      />
+    </div>
+    //...
+  );
+}
+```
+素晴らしい！あなたのホームページにはカスタムフォントとヒーロー画像が追加されました。
