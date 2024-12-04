@@ -50,3 +50,70 @@ export default function RootLayout({
 `<body>`要素にInterを追加することで、アプリケーション全体にフォントが適用されます。ここでは、フォントを滑らかにする Tailwind antialiased クラスも追加しています。このクラスを使う必要はありませんが、いいアクセントになります。
 
 ブラウザに移動してdev toolsを開き、body要素を選択します。スタイルの下にInterとInter_Fallbackが適用されているのが見えるはずです。
+
+## 練習：セカンダリフォントの追加
+アプリケーションの特定の要素にフォントを追加することもできます。
+
+次はあなたの番です！fonts.tsファイルで、Lusitanaというセカンダリーフォントをインポートし、/app/page.tsxファイルの`<p>`要素に渡します。前と同じようにサブセットを指定するだけでなく、フォントの太さも指定する必要があります。
+
+準備ができたら、下のコード・スニペットを展開して解決策を見てください。
+
+ヒント
+* フォントに渡すウェイトオプションがわからない場合は、コードエディタでTypeScriptのエラーを確認してください。
+* Google Fontsのウェブサイトにアクセスし、Lusitanaを検索して、どのようなオプションが利用可能かを確認する。
+* 複数のフォントを追加するためのドキュメントと、オプションの完全なリストを参照してください。
+
+/app/ui/fonts.ts
+```typescript
+import { Inter, Lusitana } from 'next/font/google';
+
+export const inter = Inter({ subsets: ['latin'] });
+
+export const lusitana = Lusitana({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+});
+```
+
+/app/page.tsx
+
+```tsx
+import AcmeLogo from '@/app/ui/acme-logo';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { lusitana } from '@/app/ui/fonts';
+
+export default function Page() {
+  return (
+    // ...
+    <p
+      className={`${lusitana.className} text-xl text-gray-800 md:text-3xl md:leading-normal`}
+    >
+      <strong>Welcome to Acme.</strong> This is the example for the{' '}
+      <a href="https://nextjs.org/learn/" className="text-blue-500">
+        Next.js Learn Course
+      </a>
+      , brought to you by Vercel.
+    </p>
+    // ...
+  );
+}
+```
+
+最後に、`<AcmeLogo />`コンポーネントもLusitanaを使用しています。エラーを防ぐためにコメントアウトされていますが、コメントアウトを解除してください
+
+/app/page.tsx
+```tsx
+// ...
+export default function Page() {
+  return (
+    <main className="flex min-h-screen flex-col p-6">
+      <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
+        <AcmeLogo />
+        {/* ... */}
+      </div>
+    </main>
+  );
+}
+```
+これで、アプリケーションに2つのカスタムフォントが追加されました！次に、ホームページにヒーロー画像を追加してみましょう。
