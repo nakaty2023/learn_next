@@ -47,3 +47,33 @@ http://localhost:3000/dashboard
 このようにして、Next.jsでさまざまなページを作成することができます。フォルダを使用して新しいルートセグメントを作成し、その中にページファイルを追加します。
 
 ページファイルに特別な名前をつけることで、Next.jsはUIコンポーネント、テストファイル、その他の関連コードをルートと一緒に配置することができます。ページファイル内のコンテンツだけが一般公開されます。たとえば、/uiフォルダと/libフォルダは、ルートとともに/appフォルダ内に配置されます。
+
+## 練習 ダッシュボードページの作成
+さらにルートを作る練習をしましょう。ダッシュボードに、さらに2つのページを作成します
+
+1. 顧客ページ： このページは http://localhost:3000/dashboard/customers にアクセスできるようにする。今のところ、`<p>Customers Page</p>` 要素を返してください。
+2. 請求書ページ： 請求書ページは http://localhost:3000/dashboard/invoices にアクセスできるようにする。今のところ、`<p>請求書ページ</p>` 要素も返してください。
+
+このエクササイズに時間をかけて取り組み、準備ができたら、下のトグルを展開して解決策をご覧ください。
+
+以下のようなフォルダ構成になっているはずだ。
+
+![フォルダ構成](./images/image5.png)
+
+```tsx
+// app/dashboard/customers/page.tsx
+
+
+export default function Page() {
+  return <p>Customers Page</p>;
+}
+```
+
+```tsx
+// app/dashboard/invoices/page.tsx
+
+
+export default function Page() {
+  return <p>Invoices Page</p>;
+}
+```
