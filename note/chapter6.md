@@ -17,3 +17,6 @@
 知っておいて損はありません：
 * GitLab や Bitbucket のような他の Git プロバイダーを使うこともできます。
 * GitHub を初めて使う場合は、開発ワークフローを簡素化できる GitHub Desktop App をお勧めします。
+
+## Vercelアカウントの作成
+vercel.com/signupにアクセスしてアカウントを作成する。無料の 「hobby 」プランを選択する。Continue with GitHubを選択し、GitHubとVercelのアカウントを接続します。
