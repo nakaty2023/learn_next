@@ -20,3 +20,48 @@
 見えましたか？
 
 各ページへのナビゲーション時に、ページ全体がリフレッシュされます！
+
+もちろん、以下にご依頼の英文を日本語に翻訳しました。
+
+## `<Link>`コンポーネント
+
+Next.js では、アプリケーション内のページ間をリンクするために `<Link />` コンポーネントを使用できます。`<Link>` を使用すると、JavaScript を使ったクライアントサイドのナビゲーションが可能になります。
+
+`<Link />` コンポーネントを使用するには、/app/ui/dashboard/nav-links.tsx を開き、next/link から Link コンポーネントをインポートします。その後、`<a>` タグを `<Link>` に置き換えます
+
+```tsx
+// app/ui/dashboard/nav-links.tsx
+
+import {
+  UserGroupIcon,
+  HomeIcon,
+  DocumentDuplicateIcon,
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+
+// ...
+
+export default function NavLinks() {
+  return (
+    <>
+      {links.map((link) => {
+        const LinkIcon = link.icon;
+        return (
+          <Link
+            key={link.name}
+            href={link.href}
+            className="flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3"
+          >
+            <LinkIcon className="w-6" />
+            <p className="hidden md:block">{link.name}</p>
+          </Link>
+        );
+      })}
+    </>
+  );
+}
+```
+
+ご覧のように、Linkコンポーネントは`<a>`タグを使うのと似ていますが、`<a href=「...」>`の代わりに`<Link href=「...」>`を使います。
+
+変更を保存して、ローカルホストで動作するか確認してください。これで、完全な更新を見ることなくページ間を移動できるようになるはずです。アプリケーションの一部はサーバー上でレンダリングされますが、完全なページ更新がないため、Webアプリケーションのように感じられます。なぜでしょうか？
