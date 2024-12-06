@@ -77,3 +77,41 @@ export default function Page() {
   return <p>Invoices Page</p>;
 }
 ```
+
+## ダッシュボード・レイアウトの作成
+ダッシュボードには、複数のページで共有される何らかのナビゲーションがあります。Next.jsでは、特別なlayout.tsxファイルを使用して、複数のページで共有されるUIを作成できます。ダッシュボードページのレイアウトを作成してみましょう！
+
+dashboardフォルダ内にlayout.tsxという新しいファイルを追加し、次のコードを貼り付けます
+
+```tsx
+// app/dashboard/layout.tsx
+
+import SideNav from '@/app/ui/dashboard/sidenav';
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
+      <div className="w-full flex-none md:w-64">
+        <SideNav />
+      </div>
+      <div className="flex-grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+    </div>
+  );
+}
+```
+
+このコードではいくつかのことが行われています。
+
+まず、`<SideNav />`コンポーネントをレイアウトにインポートしています。このファイルにインポートしたコンポーネントはすべてレイアウトの一部になります。
+
+`<Layout />`コンポーネントはchildren propを受け取ります。この子にはページまたは別のレイアウトを指定できます。あなたの場合、/dashboard内のページは自動的に`<Layout />`の中にネストされます。
+
+![ネスト](./images/image6.png)
+
+変更を保存してローカルホストをチェックし、すべてが正しく機能していることを確認します。以下のように表示されるはずです。
+
+![表示されるページ](./images/image7.png)
+
+Next.jsでレイアウトを使用する利点の1つは、ナビゲーション時にページ コンポーネントだけが更新され、レイアウトは再レンダリングされないことです。これは部分レンダリングと呼ばれます。
+
+![部分レンダリング](./images/image8.png)
