@@ -74,3 +74,86 @@ export default function NavLinks() {
 さらに本番環境では、`<Link>`コンポーネントがブラウザのビューポートに表示されるたびに、Next.jsはバックグラウンドでリンクされたルートのコードを自動的にプリフェッチします。ユーザーがリンクをクリックするころには、リンク先ページのコードはすでにバックグラウンドで読み込まれています！
 
 [ナビゲーションの仕組みについてもっと知る。](https://nextjs.org/docs/app/building-your-application/routing/linking-and-navigating#how-routing-and-navigation-works)
+
+## パターン：アクティブリンクの表示
+一般的なUIパターンは、現在どのページにいるのかをユーザーに示すために、アクティブなリンクを表示することです。これを行うには、URLからユーザーの現在のパスを取得する必要があります。Next.jsは[usePathname()](https://nextjs.org/docs/app/api-reference/functions/use-pathname)というフックを提供しており、これを使用してパスをチェックし、このパターンを実装することができます。
+
+usePathname()はフックなので、nav-links.tsxをクライアントコンポーネントにする必要があります。Reactの 「use client 」ディレクティブをファイルの先頭に追加し、next/navigationからusePathname()をインポートします。
+
+```tsx
+// app/ui/dashboard/nav-links.tsx
+
+'use client';
+
+import {
+  UserGroupIcon,
+  HomeIcon,
+  InboxIcon,
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+// ...
+```
+
+次に、`<NavLinks />`コンポーネント内のpathnameという変数にパスを代入します
+```tsx
+// app/ui/dashboard/nav-links.tsx
+
+export default function NavLinks() {
+  const pathname = usePathname();
+  // ...
+}
+```
+
+CSSスタイリングの章で紹介したclsxライブラリを使えば、リンクがアクティブなときに条件付きでクラス名を適用することができる。link.hrefがパス名と一致するとき、リンクは青いテキストと水色の背景で表示されるはずです。
+
+これがnav-links.tsxの最終コードです
+```tsx
+// app/ui/dashboard/nav-links.tsx
+
+'use client';
+
+import {
+  UserGroupIcon,
+  HomeIcon,
+  DocumentDuplicateIcon,
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import clsx from 'clsx';
+
+// ...
+
+export default function NavLinks() {
+  const pathname = usePathname();
+
+  return (
+    <>
+      {links.map((link) => {
+        const LinkIcon = link.icon;
+        return (
+          <Link
+            key={link.name}
+            href={link.href}
+            className={clsx(
+              'flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3',
+              {
+                'bg-sky-100 text-blue-600': pathname === link.href,
+              },
+            )}
+          >
+            <LinkIcon className="w-6" />
+            <p className="hidden md:block">{link.name}</p>
+          </Link>
+        );
+      })}
+    </>
+  );
+}
+```
+保存してローカルホストをチェックする。アクティブなリンクが青くハイライトされているはずです。
+
+第5章を修了しました
+
+Next.jsでページ間をリンクし、クライアントサイドナビゲーションを活用する方法を学びました。
