@@ -115,3 +115,35 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 Next.jsでレイアウトを使用する利点の1つは、ナビゲーション時にページ コンポーネントだけが更新され、レイアウトは再レンダリングされないことです。これは部分レンダリングと呼ばれます。
 
 ![部分レンダリング](./images/image8.png)
+
+## ルート・レイアウト
+第3章では、Interフォントを別のレイアウトにインポートしました： /app/layout.tsx
+
+リマインダーとして:
+
+```tsx
+// app/layout.tsx
+
+import '@/app/ui/global.css';
+import { inter } from '@/app/ui/fonts';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={`${inter.className} antialiased`}>{children}</body>
+    </html>
+  );
+}
+```
+
+これはルートレイアウトと呼ばれ、必須です。ルートレイアウトに追加したUIはアプリケーションのすべてのページで共有されます。ルートレイアウトを使って<html>タグと<body>タグを修正し、メタデータを追加することができます（メタデータについては後の章で詳しく学びます）。
+
+今作成した新しいレイアウト（/app/dashboard/layout.tsx）はダッシュボードページに固有なので、上記のルートレイアウトにUIを追加する必要はありません。
+
+あなたは第4章を終えた
+
+いいね、ダッシュボードのアプリが徐々に出来上がってきた。
