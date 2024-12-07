@@ -239,3 +239,26 @@ export default async function Page() {
 2. デフォルトでは、Next.jsはパフォーマンスを向上させるためにルートをプリレンダリングします。そのため、データが変更されてもダッシュボードには反映されません。
 
 この章ではその1について説明し、次の章ではその2について詳しく見ていきましょう。
+
+## リクエスト・ウォーターフォールとは？
+「ウォーターフォール」とは、前のリクエストの完了に依存する一連のネットワーク・リクエストのことを指す。データ・フェッチの場合、各リクエストは、前のリクエストがデータを返して初めて開始できる。
+
+![リクエスト・ウォーターフォール](./images/image10.png)
+
+例えば、fetchLatestInvoices()が実行される前に、fetchRevenue()が実行されるのを待つ必要がある。
+
+```tsx
+// app/dashboard/page.tsx
+
+const revenue = await fetchRevenue();
+const latestInvoices = await fetchLatestInvoices(); // wait for fetchRevenue() to finish
+const {
+  numberOfInvoices,
+  numberOfCustomers,
+  totalPaidInvoices,
+  totalPendingInvoices,
+} = await fetchCardData(); // wait for fetchLatestInvoices() to finish
+```
+このパターンが必ずしも悪いわけではない。ウォーターフォールが必要なのは、次のリクエストをする前に条件を満たしたいからかもしれません。例えば、最初にユーザーのIDとプロフィール情報を取得したい場合です。IDを取得したら、次に友達のリストを取得する。この場合、各リクエストは前のリクエストから返されたデータに依存しています。
+
+しかし、この動作は意図せずパフォーマンスに影響を与えることもあります。
