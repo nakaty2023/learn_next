@@ -154,3 +154,88 @@ export default async function Page() {
 次に、`<LatestInvoices />`コンポーネントのコメントを外します。また、/app/ui/dashboard/latest-invoicesにある`<LatestInvoices />`コンポーネント自体の関連するコードのコメントも解除する必要があります。
 
 localhostにアクセスすると、最後の5件だけがデータベースから返されていることがわかるはずです。データベースを直接クエリすることの利点がわかっていただけたと思います！
+
+## 実践：`<Card>`コンポーネントのデータ取得
+次は`<Card>`コンポーネントのデータを取得する番だ。カードには以下のデータが表示されます
+
+* 回収した請求書の総額
+* 保留中の請求書の合計金額
+* 請求書の総数
+* 顧客の総数。
+
+ここでも、すべての請求書と顧客を取得し、JavaScriptを使ってデータを操作したくなるかもしれません。例えば、Array.lengthを使って請求書と顧客の総数を取得することができます
+
+```javascript
+const totalInvoices = allInvoices.length;
+const totalCustomers = allCustomers.length;
+```
+
+しかしSQLを使えば、必要なデータだけを取り出すことができる。Array.lengthを使うより少し長くなりますが、リクエスト中に転送するデータが少なくて済みます。これがSQLの代替案です
+
+```typescript
+const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
+const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
+```
+インポートする必要がある関数は fetchCardData です。この関数から返される値を再構築する必要があります。
+
+**ヒント**：
+カード・コンポーネントがどのようなデータを必要としているかを確認する。
+data.tsファイルをチェックして、関数が何を返すかを確認する。
+準備ができたら、下のトグルを展開して最終的なコードをご覧ください
+
+```tsx
+// app/dashboard/page.tsx
+
+import { Card } from '@/app/ui/dashboard/cards';
+import RevenueChart from '@/app/ui/dashboard/revenue-chart';
+import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
+import { lusitana } from '@/app/ui/fonts';
+import {
+  fetchRevenue,
+  fetchLatestInvoices,
+  fetchCardData,
+} from '@/app/lib/data';
+
+export default async function Page() {
+  const revenue = await fetchRevenue();
+  const latestInvoices = await fetchLatestInvoices();
+  const {
+    numberOfInvoices,
+    numberOfCustomers,
+    totalPaidInvoices,
+    totalPendingInvoices,
+  } = await fetchCardData();
+
+  return (
+    <main>
+      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+        Dashboard
+      </h1>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Card title="Collected" value={totalPaidInvoices} type="collected" />
+        <Card title="Pending" value={totalPendingInvoices} type="pending" />
+        <Card title="Total Invoices" value={numberOfInvoices} type="invoices" />
+        <Card
+          title="Total Customers"
+          value={numberOfCustomers}
+          type="customers"
+        />
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
+        <RevenueChart revenue={revenue} />
+        <LatestInvoices latestInvoices={latestInvoices} />
+      </div>
+    </main>
+  );
+}
+```
+
+素晴らしい！これでダッシュボードの概要ページに必要なすべてのデータが取得できました。ページはこのようになるはずです
+![ページ](./images/image9.png))
+
+しかし...注意しなければならないことが2つある
+
+1. データリクエストが意図せず互いにブロックされ、リクエストウォーターフォールが発生しています。
+2. デフォルトでは、Next.jsはパフォーマンスを向上させるためにルートをプリレンダリングします。そのため、データが変更されてもダッシュボードには反映されません。
+
+この章ではその1について説明し、次の章ではその2について詳しく見ていきましょう。
