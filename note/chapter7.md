@@ -91,3 +91,25 @@ export default async function Page() {
 上のコードでは
 * Pageは非同期コンポーネントである。これにより、awaitを使ってデータを取得することができる。
 * また、データを受け取るコンポーネントが3つあります： `<Card>`, `<RevenueChart>`, `<LatestInvoices>` です。これらは現在、アプリケーションのエラーを防ぐためにコメントアウトされています。
+
+## `<RevenueChart/>`のデータをフェッチする
+`<RevenueChart/>`コンポーネントのデータを取得するには、data.tsからfetchRevenue関数をインポートし、コンポーネント内で呼び出します
+
+```tsx
+// app/dashboard/page.tsx
+
+import { Card } from '@/app/ui/dashboard/cards';
+import RevenueChart from '@/app/ui/dashboard/revenue-chart';
+import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
+import { lusitana } from '@/app/ui/fonts';
+import { fetchRevenue } from '@/app/lib/data';
+
+export default async function Page() {
+  const revenue = await fetchRevenue();
+  // ...
+}
+```
+
+次に、`<RevenueChart/>`コンポーネントのコメントを解除し、コンポーネントファイル（/app/ui/dashboard/revenue-chart.tsx）に移動して、その中のコードをアンコメントしてください。ローカルホストをチェックすると、収益データを使ったチャートが表示されているはずです。
+
+さらにデータクエリのインポートを続けよう！
