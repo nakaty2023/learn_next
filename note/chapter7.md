@@ -262,3 +262,40 @@ const {
 このパターンが必ずしも悪いわけではない。ウォーターフォールが必要なのは、次のリクエストをする前に条件を満たしたいからかもしれません。例えば、最初にユーザーのIDとプロフィール情報を取得したい場合です。IDを取得したら、次に友達のリストを取得する。この場合、各リクエストは前のリクエストから返されたデータに依存しています。
 
 しかし、この動作は意図せずパフォーマンスに影響を与えることもあります。
+
+## 並列データフェッチ
+ウォーターフォールを回避する一般的な方法は、すべてのデータ要求を同時に、つまり並列に開始することです。
+
+JavaScriptでは、Promise.all()またはPromise.allSettled()関数を使用して、すべてのプロミスを同時に開始することができます。例えば、data.tsではfetchCardData()関数でPromise.all()を使っています
+
+```typescript
+// app/lib/data.ts
+
+export async function fetchCardData() {
+  try {
+    const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
+    const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
+    const invoiceStatusPromise = sql`SELECT
+         SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
+         SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
+         FROM invoices`;
+
+    const data = await Promise.all([
+      invoiceCountPromise,
+      customerCountPromise,
+      invoiceStatusPromise,
+    ]);
+    // ...
+  }
+}
+```
+
+このパターンを使うことで
+* すべてのデータ取得を同時に実行し始めることで、パフォーマンスを向上させることができる。
+* どんなライブラリやフレームワークにも適用できるネイティブのJavaScriptパターンを使う。
+
+しかし、このJavaScriptパターンにのみ依存するデメリットが1つあります。1つのデータリクエストが他のすべてのリクエストよりも遅い場合はどうなるでしょうか？
+
+第7章を終了しました
+
+Next.jsでデータを取得するさまざまな方法について学びました。
