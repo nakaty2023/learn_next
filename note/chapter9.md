@@ -276,3 +276,81 @@ export default async function LatestInvoices() { // Remove props
   );
 }
 ```
+
+## コンポーネントのグループ化
+素晴らしい！もう少し、<カード>コンポーネントをサスペンスでラップする必要があります。個々のカードごとにデータを取得することもできますが、この場合、カードが読み込まれるときにポップエフェクトが発生する可能性があります。
+
+では、この問題にどのように対処しますか？
+
+より時差効果を出すには、ラッパーコンポーネントを使ってカードをグループ化します。つまり、静的な`<SideNav/>`が最初に表示され、次にカードなどが表示されます。
+
+page.tsxファイルを開きます：
+
+* `<Card>`コンポーネントを削除してください。
+* fetchCardData()関数を削除してください。
+* `<CardWrapper />`という新しいラッパー・コンポーネントをインポートします。
+* `<CardsSkeleton />`という新しいスケルトン・コンポーネントをインポートします。
+* `<CardWrapper />` をサスペンスでラップします。
+
+```tsx
+// app/dashboard/page.tsx
+
+import CardWrapper from '@/app/ui/dashboard/cards';
+// ...
+import {
+  RevenueChartSkeleton,
+  LatestInvoicesSkeleton,
+  CardsSkeleton,
+} from '@/app/ui/skeletons';
+
+export default async function Page() {
+  return (
+    <main>
+      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+        Dashboard
+      </h1>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Suspense fallback={<CardsSkeleton />}>
+          <CardWrapper />
+        </Suspense>
+      </div>
+      // ...
+    </main>
+  );
+}
+```
+
+次に、/app/ui/dashboard/cards.tsxに移動し、fetchCardData()関数をインポートして、<CardWrapper/>コンポーネント内で呼び出してください。このコンポーネントで必要なコードがあれば、必ずアンコメントしてください。
+
+```tsx
+// app/ui/dashboard/cards.tsx
+
+// ...
+import { fetchCardData } from '@/app/lib/data';
+
+// ...
+
+export default async function CardWrapper() {
+  const {
+    numberOfInvoices,
+    numberOfCustomers,
+    totalPaidInvoices,
+    totalPendingInvoices,
+  } = await fetchCardData();
+
+  return (
+    <>
+      <Card title="Collected" value={totalPaidInvoices} type="collected" />
+      <Card title="Pending" value={totalPendingInvoices} type="pending" />
+      <Card title="Total Invoices" value={numberOfInvoices} type="invoices" />
+      <Card
+        title="Total Customers"
+        value={numberOfCustomers}
+        type="customers"
+      />
+    </>
+  );
+}
+```
+
+ページを更新すると、すべてのカードが同時に読み込まれるのが見えるはずだ。複数のコンポーネントを同時にロードしたいときに、このパターンを使うことができます。
