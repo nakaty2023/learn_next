@@ -43,3 +43,38 @@ Next.js 14では、部分プリレンダリングの実験的なバージョン�
 コンポーネントをSuspenseでラップしても、コンポーネント自体が動的になるわけではありません。むしろ、Suspenseは静的コードと動的コードの境界として使用されます。
 
 ダッシュボードルートに PPR を実装する方法を見てみましょう。
+
+## 部分プリレンダリングの実装
+next.config.mjsファイルにpprオプションを追加して、Next.jsアプリのPPRを有効にします
+
+```javascript
+/** @type {import('next').NextConfig} */
+
+const nextConfig = {
+  experimental: {
+    ppr: 'incremental',
+  },
+};
+
+export default nextConfig;
+```
+
+incremental'値は、特定のルートにPPRを採用することができます。
+
+次に、experimental_pprセグメント設定オプションをダッシュボードレイアウトに追加します
+
+```tsx
+// app/dashboard/layout.tsx
+
+import SideNav from '@/app/ui/dashboard/sidenav';
+
+export const experimental_ppr = true;
+
+// ...
+```
+
+以上です。開発中のアプリケーションでは違いがわからないかもしれませんが、本番環境ではパフォーマンスの向上に気づくはずです。Next.jsはルートの静的な部分をプリレンダリングし、動的な部分はユーザーがリクエストするまで延期します。
+
+部分的なプリレンダリングのすばらしいところは、使うためにコードを変更する必要がないことです。ルートの動的な部分をラップするためにSusppenseを使用している限り、Next.jsはルートのどの部分が静的で、どの部分が動的であるかを知ることができます。
+
+PPRは、静的レンダリングと動的レンダリングの長所を併せ持つ、Webアプリケーションのデフォルトのレンダリングモデルになる可能性を秘めていると考えています。しかし、まだ実験的な段階です。将来的には安定させ、Next.jsで構築するデフォルトの方法にしたいと考えています。
