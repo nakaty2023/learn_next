@@ -30,3 +30,46 @@
 * リアルタイムデータ - ダイナミックレンダリングにより、アプリケーションはリアルタイムまたは頻繁に更新されるデータを表示できます。これは、データが頻繁に変更されるアプリケーションに最適です。
 * ユーザー固有のコンテンツ - ダッシュボードやユーザープロファイルなど、パーソナライズされたコンテンツを提供し、ユーザーとの対話に基づいてデータを更新することが容易になります。
 * リクエスト時の情報 - 動的レンダリングでは、クッキーやURL検索パラメータなど、リクエスト時にしかわからない情報にアクセスできます。
+
+## 遅いデータフェッチのシミュレーション
+私たちが作っているダッシュボード・アプリケーションは動的です。
+
+しかし、前の章で述べた問題がまだあります。もし1つのデータリクエストが他のものよりも遅かったらどうなるでしょうか？
+
+遅いデータ・フェッチをシミュレートしてみましょう。data.tsファイルで、fetchRevenue()内のconsole.logとsetTimeoutのコメントを外します
+
+```typescript
+// app/lib/data.ts
+
+export async function fetchRevenue() {
+  try {
+    // We artificially delay a response for demo purposes.
+    // Don't do this in production :)
+    console.log('Fetching revenue data...');
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const data = await sql<Revenue>`SELECT * FROM revenue`;
+
+    console.log('Data fetch completed after 3 seconds.');
+
+    return data.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch revenue data.');
+  }
+}
+```
+新しいタブで http://localhost:3000/dashboard/ を開き、ページの読み込みに時間がかかることに注目してください。ターミナルでは、以下のメッセージも表示されるはずです
+
+```bash
+Fetching revenue data...
+Data fetch completed after 3 seconds.
+```
+
+ここでは、データ取得に時間がかかることをシミュレートするために、人為的に3秒の遅延を追加しています。その結果、データがフェッチされている間、ページ全体が訪問者にUIを表示するのをブロックされてしまいます。そこで、開発者が解決しなければならない一般的な課題に行き着きます
+
+動的レンダリングでは、アプリケーションは最も遅いデータ・フェッチと同じ速度しか出せません。
+
+あなたは第8章を完了した
+
+すばらしい！Next.jsの静的レンダリングと動的レンダリングについて学びました。
