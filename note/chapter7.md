@@ -51,3 +51,43 @@ app/lib/data.tsにアクセスしてください。ここでは@vercel/postgres�
 どのサーバーコンポーネント内でもsqlを呼び出すことができます。しかし、より簡単にコンポーネントをナビゲートできるように、すべてのデータクエリをdata.tsファイルに保持し、コンポーネントにインポートできるようにしています。
 
 **注意**：第6章で独自のデータベース・プロバイダを使用した場合、あなたのプロバイダで動作するようにデータベース・クエリを更新する必要があります。クエリは/app/lib/data.tsにあります。
+
+## ダッシュボードの概要ページ用にデータをフェッチする
+データをフェッチするさまざまな方法を理解したところで、ダッシュボードの概要ページのデータをフェッチしてみましょう。/app/dashboard/page.tsxに移動し、以下のコードを貼り付けて、しばらく時間をかけて探索してください
+
+```tsx
+// app/dashboard/page.tsx
+
+import { Card } from '@/app/ui/dashboard/cards';
+import RevenueChart from '@/app/ui/dashboard/revenue-chart';
+import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
+import { lusitana } from '@/app/ui/fonts';
+
+export default async function Page() {
+  return (
+    <main>
+      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+        Dashboard
+      </h1>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* <Card title="Collected" value={totalPaidInvoices} type="collected" /> */}
+        {/* <Card title="Pending" value={totalPendingInvoices} type="pending" /> */}
+        {/* <Card title="Total Invoices" value={numberOfInvoices} type="invoices" /> */}
+        {/* <Card
+          title="Total Customers"
+          value={numberOfCustomers}
+          type="customers"
+        /> */}
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
+        {/* <RevenueChart revenue={revenue}  /> */}
+        {/* <LatestInvoices latestInvoices={latestInvoices} /> */}
+      </div>
+    </main>
+  );
+}
+```
+
+上のコードでは
+* Pageは非同期コンポーネントである。これにより、awaitを使ってデータを取得することができる。
+* また、データを受け取るコンポーネントが3つあります： `<Card>`, `<RevenueChart>`, `<LatestInvoices>` です。これらは現在、アプリケーションのエラーを防ぐためにコメントアウトされています。
