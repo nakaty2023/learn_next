@@ -27,3 +27,12 @@ Next.jsでは、ルートハンドラを使ってAPIエンドポイントを作�
 * React Server Components（サーバー上でデータを取得する）を使用している場合は、APIレイヤーをスキップして、データベースの秘密をクライアントに公開するリスクを冒すことなく、データベースに直接問い合わせることができます。
 
 それでは、React Server Componentsについて詳しく説明しよう。
+
+## データ取得にServer Componentsを使用する
+デフォルトでは、Next.jsアプリケーションはReact Server Componentsを使用します。Server Componentsを使用したデータ取得は比較的新しいアプローチですが、Server Componentsを使用する利点がいくつかあります
+
+Server Componentsはpromiseをサポートし、データ取得のような非同期タスクのためのシンプルなソリューションを提供します。useEffectやuseState、データ取得ライブラリに手を伸ばすことなく、async/await構文を使用できます。
+
+Server Componentsはサーバー上で実行されるため、高価なデータ取得やロジックをサーバー上に保持し、結果のみをクライアントに送信することができます。
+
+前述のように、Server Componentsはサーバー上で実行されるため、APIレイヤーを追加することなく、データベースに直接問い合わせることができます。
