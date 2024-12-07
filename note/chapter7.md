@@ -113,3 +113,44 @@ export default async function Page() {
 次に、`<RevenueChart/>`コンポーネントのコメントを解除し、コンポーネントファイル（/app/ui/dashboard/revenue-chart.tsx）に移動して、その中のコードをアンコメントしてください。ローカルホストをチェックすると、収益データを使ったチャートが表示されているはずです。
 
 さらにデータクエリのインポートを続けよう！
+
+## `<LatestInvoices/>`のデータ取得
+`<LatestInvoices />`コンポーネントでは、日付順に並べ替えられた最新5件の請求書を取得する必要があります。
+
+JavaScriptを使ってすべての請求書を取得し、並べ替えることができます。しかし、アプリケーションの規模が大きくなるにつれて、リクエストごとに転送されるデータ量と、それをソートするために必要なJavaScriptの量が大幅に増える可能性があります。
+
+インメモリで最新の請求書をソートする代わりに、SQLクエリを使って直近の5件の請求書だけを取得することができます。例えば、これはdata.tsファイルのSQLクエリです
+
+```typescript
+// app/lib/data.ts
+
+// Fetch the last 5 invoices, sorted by date
+const data = await sql<LatestInvoiceRaw>`
+  SELECT invoices.amount, customers.name, customers.image_url, customers.email
+  FROM invoices
+  JOIN customers ON invoices.customer_id = customers.id
+  ORDER BY invoices.date DESC
+  LIMIT 5`;
+```
+
+あなたのページで fetchLatestInvoices 関数をインポートします
+
+```tsx
+// app/dashboard/page.tsx
+
+import { Card } from '@/app/ui/dashboard/cards';
+import RevenueChart from '@/app/ui/dashboard/revenue-chart';
+import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
+import { lusitana } from '@/app/ui/fonts';
+import { fetchRevenue, fetchLatestInvoices } from '@/app/lib/data';
+
+export default async function Page() {
+  const revenue = await fetchRevenue();
+  const latestInvoices = await fetchLatestInvoices();
+  // ...
+}
+```
+
+次に、`<LatestInvoices />`コンポーネントのコメントを外します。また、/app/ui/dashboard/latest-invoicesにある`<LatestInvoices />`コンポーネント自体の関連するコードのコメントも解除する必要があります。
+
+localhostにアクセスすると、最後の5件だけがデータベースから返されていることがわかるはずです。データベースを直接クエリすることの利点がわかっていただけたと思います！
