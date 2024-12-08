@@ -300,3 +300,83 @@ export default async function Page(props: {
 * `<Table>`はそれ自身のデータを取得するServer Componentなので、ページからコンポーネントにsearchParams propを渡すことができます。
 
 一般的なルールとして、クライアントからパラメータを読み込みたい場合、useSearchParams()フックを使用します。
+
+### ベストプラクティス：デバウンス
+おめでとうございます！Next.jsで検索を実装しましたね！しかし、最適化するためにできることがあります。
+
+handleSearch 関数の中に、次の console.log を追加してください
+
+```tsx
+// app/ui/search.tsx
+
+function handleSearch(term: string) {
+  console.log(`Searching... ${term}`);
+
+  const params = new URLSearchParams(searchParams);
+  if (term) {
+    params.set('query', term);
+  } else {
+    params.delete('query');
+  }
+  replace(`${pathname}?${params.toString()}`);
+}
+```
+それから検索バーに「Delba」と入力し、開発ツールのコンソールを確認してください。何が起こっているのか？
+
+```
+Searching... D
+Searching... De
+Searching... Del
+Searching... Delb
+Searching... Delba
+```
+
+キーストロークのたびにURLを更新しているので、キーストロークのたびにデータベースに問い合わせをしていることになります！私たちのアプリケーションは小さいので、これは問題ではありませんが、もしあなたのアプリケーションに何千人ものユーザーがいて、それぞれがキーストロークのたびにデータベースに新しいリクエストを送信していたらと想像してみてください。
+
+デバウンスは、関数が起動するレートを制限するプログラミング手法です。この例では、ユーザーが入力を止めたときだけデータベースに問い合わせるようにします。
+
+**デバウンスの仕組み**
+
+1. トリガーイベント： デバウンスすべきイベント（検索ボックスのキー入力など）が発生すると、タイマーがスタートします。
+2. 待機：タイマーが切れる前に新しいイベントが発生すると、タイマーがリセットされます。
+3. 実行： タイマーのカウントダウンが終了すると、デバウンスされた関数が実行されます。
+
+デバウンスを実装するには、独自のデバウンス関数を手動で作成するなど、いくつかの方法があります。シンプルにするために、use-debounceというライブラリを使います。
+
+use-debounceをインストールする：
+
+```bash
+pnpm i use-debounce
+```
+
+`<Search>` ComponentにuseDebouncedCallbackという関数をインポートします
+
+```tsx
+// app/ui/search.tsx
+
+// ...
+import { useDebouncedCallback } from 'use-debounce';
+
+// Inside the Search Component...
+const handleSearch = useDebouncedCallback((term) => {
+  console.log(`Searching... ${term}`);
+
+  const params = new URLSearchParams(searchParams);
+  if (term) {
+    params.set('query', term);
+  } else {
+    params.delete('query');
+  }
+  replace(`${pathname}?${params.toString()}`);
+}, 300);
+```
+
+この関数はhandleSearchの内容をラップし、ユーザーが入力をやめてから特定の時間（300ミリ秒）後にのみコードを実行する。
+
+もう一度検索バーを入力し、開発ツールのコンソールを開いてください。以下のように表示されるはずです
+
+```
+Searching... Delba
+```
+
+デバウンスすることで、データベースに送られるリクエストの数を減らし、リソースを節約することができます。
