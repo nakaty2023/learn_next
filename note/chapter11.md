@@ -59,3 +59,57 @@ URLパラメータを使って検索を実装することには、いくつか�
 * ブックマーク可能なURLと共有可能なURL： 検索パラメータはURL内にあるので、ユーザーは検索クエリとフィルタを含むアプリケーションの現在の状態をブックマークして、将来の参照や共有に利用することができます。
 * サーバーサイドレンダリングと初期ロード： 初期状態をレンダリングするために、URLパラメータをサーバー上で直接消費することができるため、サーバーレンダリングの処理が容易になります。
 * アナリティクスとトラッキング: 検索クエリとフィルタを直接URL内に持つことで、クライアントサイドのロジックを追加することなく、ユーザーの行動をトラッキングしやすくなります。
+
+## 検索機能の追加
+次に示すのは、検索機能を実装するために使用する Next.js のクライアントフックです。
+* useSearchParams: 現在のURLのパラメータにアクセスできます。たとえば、/dashboard/invoices?page=1&query=pending というURLの場合、{page: '1', query: 'pending'} のような検索パラメータになります。
+* usePathname: 現在のURLのパス名を取得できます。たとえば、ルートが /dashboard/invoices の場合、usePathname は '/dashboard/invoices' を返します。
+* useRouter: クライアントコンポーネント内でプログラム的にルート間のナビゲーションを可能にします。利用できるメソッドはいくつか存在します。
+
+以下は、実装手順の概要です。
+1.	ユーザーの入力を取得する
+2.	URLを検索パラメータ付きで更新する
+3.	入力フィールドとURLを同期させる
+4.	テーブルを検索クエリに応じて更新する
+
+### 1. ユーザーの入力を取得する
+
+`<Search>`コンポーネント（/app/ui/search.tsx）に移動します。以下の点に注目してください。
+* "use client": このコンポーネントはクライアントコンポーネントであるため、イベントリスナーやフックを使用できます。
+* `<input>`: これは検索入力フィールドです。
+
+handleSearch という新しい関数を作成し、`<input>`要素にonChangeリスナーを追加します。onChangeは、入力値が変わるたびにhandleSearchを呼び出します。
+
+```tsx
+// app/ui/search.tsx
+
+'use client';
+
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+
+export default function Search({ placeholder }: { placeholder: string }) {
+  function handleSearch(term: string) {
+    console.log(term);
+  }
+
+  return (
+    <div className="relative flex flex-1 flex-shrink-0">
+      <label htmlFor="search" className="sr-only">
+        Search
+      </label>
+      <input
+        className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
+        placeholder={placeholder}
+        onChange={(e) => {
+          handleSearch(e.target.value);
+        }}
+      />
+      <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+    </div>
+  );
+}
+```
+
+デベロッパーツールのコンソールを開き、検索フィールドに文字を入力して、正しく動作していることをテストしてください。コンソールに検索語が記録されるはずです。
+
+素晴らしい！ユーザーの検索入力をキャプチャしています。次に、検索語でURLを更新する必要があります。
