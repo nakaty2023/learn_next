@@ -380,3 +380,164 @@ Searching... Delba
 ```
 
 デバウンスすることで、データベースに送られるリクエストの数を減らし、リソースを節約することができます。
+
+## ページネーションの追加
+検索機能を導入した後、テーブルが一度に6つの請求書しか表示しないことに気づくでしょう。これは、data.tsのfetchFilteredInvoices()関数が1ページに最大6件の請求書を返すためです。
+
+ページ分割を追加することで、ユーザーは異なるページをナビゲートしてすべての請求書を見ることができます。検索で行ったように、URLパラメータを使用してページ分割を実装する方法を見てみましょう。
+
+`<Pagination/>`コンポーネントに移動すると、それがクライアントコンポーネントであることがわかります。クライアントでデータを取得することは、データベースの秘密を暴露することになるので避けたいでしょう（APIレイヤーを使用していないことを忘れないでください）。代わりに、サーバでデータを取得し、それをpropとしてコンポーネントに渡すことができます。
+
+/dashboard/invoices/page.tsxで、fetchInvoicesPagesという新しい関数をインポートし、searchParamsからのクエリを引数として渡します
+
+```tsx
+// app/dashboard/invoices/page.tsx
+
+// ...
+import { fetchInvoicesPages } from '@/app/lib/data';
+
+export default async function Page(
+  props: {
+    searchParams?: Promise<{
+      query?: string;
+      page?: string;
+    }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const query = searchParams?.query || '';
+  const currentPage = Number(searchParams?.page) || 1;
+  const totalPages = await fetchInvoicesPages(query);
+
+  return (
+    // ...
+  );
+}
+```
+
+fetchInvoicesPages は、検索クエリに基づくページの総数を返します。例えば、検索クエリにマッチする請求書が12件あり、各ページが6件の請求書を表示する場合、総ページ数は2ページとなります。
+
+次に、totalPagesプロップを`<Pagination/>`コンポーネントに渡します
+
+```tsx
+// app/dashboard/invoices/page.tsx
+
+// ...
+
+export default async function Page(props: {
+  searchParams?: Promise<{
+    query?: string;
+    page?: string;
+  }>;
+}) {
+  const searchParams = await props.searchParams;
+  const query = searchParams?.query || '';
+  const currentPage = Number(searchParams?.page) || 1;
+  const totalPages = await fetchInvoicesPages(query);
+
+  return (
+    <div className="w-full">
+      <div className="flex w-full items-center justify-between">
+        <h1 className={`${lusitana.className} text-2xl`}>Invoices</h1>
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
+        <Search placeholder="Search invoices..." />
+        <CreateInvoice />
+      </div>
+      <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
+        <Table query={query} currentPage={currentPage} />
+      </Suspense>
+      <div className="mt-5 flex w-full justify-center">
+        <Pagination totalPages={totalPages} />
+      </div>
+    </div>
+  );
+}
+```
+
+`<Pagination/>`コンポーネントに移動し、usePathnameとuseSearchParamsフックをインポートする。これを使用して、現在のページを取得し、新しいページを設定します。このコンポーネントのコードもアンコメントしてください。まだ`<Pagination/>`ロジックを実装していないので、アプリケーションが一時的に壊れてしまいます。今すぐ実装しましょう！
+
+```tsx
+// app/ui/invoices/pagination.tsx
+
+'use client';
+
+import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
+import Link from 'next/link';
+import { generatePagination } from '@/app/lib/utils';
+import { usePathname, useSearchParams } from 'next/navigation';
+
+export default function Pagination({ totalPages }: { totalPages: number }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
+
+  // ...
+}
+```
+
+次に、`<Pagination>`コンポーネントの中にcreatePageURLという新しい関数を作成します。検索と同様に、URLSearchParamsを使って新しいページ番号を設定し、pathNameを使ってURL文字列を作成します。
+
+```tsx
+// app/ui/invoices/pagination.tsx
+
+'use client';
+
+import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
+import Link from 'next/link';
+import { generatePagination } from '@/app/lib/utils';
+import { usePathname, useSearchParams } from 'next/navigation';
+
+export default function Pagination({ totalPages }: { totalPages: number }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
+
+  const createPageURL = (pageNumber: number | string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', pageNumber.toString());
+    return `${pathname}?${params.toString()}`;
+  };
+
+  // ...
+}
+```
+
+何が起こっているかの内訳は以下の通り
+
+* createPageURLは現在の検索パラメータのインスタンスを作成します。
+* 次に、「page 」パラメータを指定されたページ番号に更新します。
+* 最後に、パス名と更新された検索パラメータを使って完全なURLを作成します。
+
+`<Pagination>`コンポーネントの残りの部分は、スタイリングとさまざまな状態（最初、最後、アクティブ、無効など）を扱います。このコースでは詳細には触れませんが、createPageURLがどこで呼び出されているか、自由にコードを見てください。
+
+最後に、ユーザが新しい検索クエリを入力したときに、ページ番号を1にリセットしたい場合、`<Search>`コンポーネントのhandleSearch関数を更新することでこれを行うことができます
+
+```tsx
+// app/ui/search.tsx
+
+'use client';
+
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useDebouncedCallback } from 'use-debounce';
+
+export default function Search({ placeholder }: { placeholder: string }) {
+  const searchParams = useSearchParams();
+  const { replace } = useRouter();
+  const pathname = usePathname();
+
+  const handleSearch = useDebouncedCallback((term) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', '1');
+    if (term) {
+      params.set('query', term);
+    } else {
+      params.delete('query');
+    }
+    replace(`${pathname}?${params.toString()}`);
+  }, 300);
+
+```
