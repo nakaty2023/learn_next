@@ -239,3 +239,64 @@ export default function Search() {
 入力の値を管理するために状態を使用する場合、value属性を使用して制御されたコンポーネントにします。これは、Reactが入力の状態を管理することを意味します。
 
 しかし、状態を使用しないので、defaultValueを使用することができます。これは、ネイティブ入力が自身の状態を管理することを意味する。ステートの代わりに検索クエリをURLに保存するので、これは問題ない。
+
+### 4. テーブルの更新
+最後に、検索クエリを反映させるためにテーブルコンポーネントを更新する必要があります。
+
+請求書ページに戻ってください。
+
+ページコンポーネントはsearchParamsと呼ばれるpropを受け入れるので、現在のURLパラメータを`<Table>`コンポーネントに渡すことができます。
+
+```tsx
+// app/dashboard/invoices/page.tsx
+
+import Pagination from '@/app/ui/invoices/pagination';
+import Search from '@/app/ui/search';
+import Table from '@/app/ui/invoices/table';
+import { CreateInvoice } from '@/app/ui/invoices/buttons';
+import { lusitana } from '@/app/ui/fonts';
+import { Suspense } from 'react';
+import { InvoicesTableSkeleton } from '@/app/ui/skeletons';
+
+export default async function Page(props: {
+  searchParams?: Promise<{
+    query?: string;
+    page?: string;
+  }>;
+}) {
+  const searchParams = await props.searchParams;
+  const query = searchParams?.query || '';
+  const currentPage = Number(searchParams?.page) || 1;
+
+  return (
+    <div className="w-full">
+      <div className="flex w-full items-center justify-between">
+        <h1 className={`${lusitana.className} text-2xl`}>Invoices</h1>
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
+        <Search placeholder="Search invoices..." />
+        <CreateInvoice />
+      </div>
+      <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
+        <Table query={query} currentPage={currentPage} />
+      </Suspense>
+      <div className="mt-5 flex w-full justify-center">
+        {/* <Pagination totalPages={totalPages} /> */}
+      </div>
+    </div>
+  );
+}
+```
+
+`<Table>`コンポーネントに移動すると、queryとcurrentPageの2つのpropsがfetchFilteredInvoices()関数に渡され、クエリに一致する請求書を返すことがわかります。
+
+これらの変更を行って、テストしてみてください。用語を検索すると、URLが更新され、サーバに新しいリクエストが送信され、サーバでデータが取得され、クエリにマッチする請求書だけが返されます。
+
+**useSearchParams()フックとsearchParamsプロップの使い分けは？**
+
+検索パラメータを抽出するために2つの異なる方法を使用していることにお気づきかもしれません。どちらを使うかは、クライアントで作業しているかサーバで作業しているかによります。
+
+* `<Search>`はクライアント・コンポーネントなので、クライアントからパラメータにアクセスするためにuseSearchParams()フックを使用しました。
+* `<Table>`はそれ自身のデータを取得するServer Componentなので、ページからコンポーネントにsearchParams propを渡すことができます。
+
+一般的なルールとして、クライアントからパラメータを読み込みたい場合、useSearchParams()フックを使用します。
