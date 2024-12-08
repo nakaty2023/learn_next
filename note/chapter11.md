@@ -113,3 +113,107 @@ export default function Search({ placeholder }: { placeholder: string }) {
 デベロッパーツールのコンソールを開き、検索フィールドに文字を入力して、正しく動作していることをテストしてください。コンソールに検索語が記録されるはずです。
 
 素晴らしい！ユーザーの検索入力をキャプチャしています。次に、検索語でURLを更新する必要があります。
+
+### 2. 検索パラメータでURLを更新する
+'next/navigation'からuseSearchParamsフックをインポートし、変数に代入する
+
+```tsx
+// app/ui/search.tsx
+
+'use client';
+
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useSearchParams } from 'next/navigation';
+
+export default function Search() {
+  const searchParams = useSearchParams();
+
+  function handleSearch(term: string) {
+    console.log(term);
+  }
+  // ...
+}
+```
+
+handleSearchの内部で、新しいsearchParams変数を使用して新しいURLSearchParamsインスタンスを作成します。
+
+```tsx
+// app/ui/search.tsx
+
+'use client';
+
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useSearchParams } from 'next/navigation';
+
+export default function Search() {
+  const searchParams = useSearchParams();
+
+  function handleSearch(term: string) {
+    const params = new URLSearchParams(searchParams);
+  }
+  // ...
+}
+```
+
+URLSearchParamsは、URLクエリ・パラメータを操作するためのユーティリティ・メソッドを提供するWeb APIです。複雑な文字列リテラルを作成する代わりに、?page=1&query=aのようなparams文字列を取得するために使用することができます。
+
+次に、ユーザーの入力に基づいてparams文字列を設定します。入力が空の場合は、それを削除します
+
+```tsx
+// app/ui/search.tsx
+
+'use client';
+
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useSearchParams } from 'next/navigation';
+
+export default function Search() {
+  const searchParams = useSearchParams();
+
+  function handleSearch(term: string) {
+    const params = new URLSearchParams(searchParams);
+    if (term) {
+      params.set('query', term);
+    } else {
+      params.delete('query');
+    }
+  }
+  // ...
+}
+```
+
+これでクエリ文字列ができました。Next.jsのuseRouterとusePathnameフックを使ってURLを更新できます。
+
+useRouterとusePathnameを'next/navigation'からインポートし、handleSearch内でuseRouter()のreplaceメソッドを使用します
+
+```tsx
+// app/ui/search.tsx
+
+'use client';
+
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+
+export default function Search() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+
+  function handleSearch(term: string) {
+    const params = new URLSearchParams(searchParams);
+    if (term) {
+      params.set('query', term);
+    } else {
+      params.delete('query');
+    }
+    replace(`${pathname}?${params.toString()}`);
+  }
+}
+```
+
+何が起きているかの内訳は以下の通り
+
+* `$[pathname}`は現在のパスで、あなたの場合は`/dashboard/invoices`です。
+* ユーザーが検索バーに入力すると、`params.toString()`がこの入力をURLフレンドリーなフォーマットに変換します。
+* `replace(${pathname}?${params.toString()})`は、ユーザーの検索データでURLを更新します。例えば、ユーザが 「Lee 」と検索した場合、`/dashboard/invoices?query=lee`となります。
+* Next.jsのクライアントサイドナビゲーション（ページ間のナビゲーションの章で説明しました）のおかげで、ページをリロードすることなくURLが更新されます。
