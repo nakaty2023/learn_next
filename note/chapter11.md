@@ -217,3 +217,25 @@ export default function Search() {
 * ユーザーが検索バーに入力すると、`params.toString()`がこの入力をURLフレンドリーなフォーマットに変換します。
 * `replace(${pathname}?${params.toString()})`は、ユーザーの検索データでURLを更新します。例えば、ユーザが 「Lee 」と検索した場合、`/dashboard/invoices?query=lee`となります。
 * Next.jsのクライアントサイドナビゲーション（ページ間のナビゲーションの章で説明しました）のおかげで、ページをリロードすることなくURLが更新されます。
+
+### 3. URLと入力を同期させる
+入力フィールドがURLと同期し、共有時に入力されるようにするには、searchParamsから読み込んでinputにdefaultValueを渡します
+
+```tsx
+// app/ui/search.tsx
+
+<input
+  className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
+  placeholder={placeholder}
+  onChange={(e) => {
+    handleSearch(e.target.value);
+  }}
+  defaultValue={searchParams.get('query')?.toString()}
+/>
+```
+
+**defaultValue vs. value / 制御される vs. 制御されない**
+
+入力の値を管理するために状態を使用する場合、value属性を使用して制御されたコンポーネントにします。これは、Reactが入力の状態を管理することを意味します。
+
+しかし、状態を使用しないので、defaultValueを使用することができます。これは、ネイティブ入力が自身の状態を管理することを意味する。ステートの代わりに検索クエリをURLに保存するので、これは問題ない。
