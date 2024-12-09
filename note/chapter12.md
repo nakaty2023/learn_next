@@ -158,3 +158,33 @@ HTMLでは、action属性にURLを渡します。このURLは、フォームの�
 しかしReactでは、action属性は特別なpropとみなされます。つまり、Reactはアクションを呼び出すことができるように、action属性の上に構築します。
 
 裏では、Server ActionsはPOST APIエンドポイントを作成します。これが、Server Actionsを使用する際にAPIエンドポイントを手動で作成する必要がない理由です。
+
+**3. formDataからデータを取り出す**
+
+actions.tsファイルに戻り、formDataの値を抽出する必要がありますが、使用できるメソッドがいくつかあります。この例では、.get(name)メソッドを使います。
+
+```typescript
+// app/lib/actions.ts
+
+'use server';
+
+export async function createInvoice(formData: FormData) {
+  const rawFormData = {
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  };
+  // Test it out:
+  console.log(rawFormData);
+}
+```
+
+ヒント: 多数のフィールドを持つフォームを扱う場合は、JavaScript の Object.fromEntries() を使用して entries() メソッドを使用することをお勧めします。たとえば
+
+```javascript
+const rawFormData = Object.fromEntries(formData.entries())
+```
+
+すべてが正しく接続されていることを確認するために、先に進んでフォームを試してみてください。送信すると、フォームに入力したデータがターミナルに記録されます。
+
+これでデータがオブジェクトの形になったので、作業がとても簡単になります。
