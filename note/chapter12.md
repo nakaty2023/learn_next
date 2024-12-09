@@ -44,3 +44,56 @@ export default function Page() {
 サーバーアクションもNext.jsのキャッシュと深く統合されています。サーバーアクションでフォームが送信されると、アクションを使用してデータを変更できるだけでなく、revalidatePath や revalidateTag などの API を使用して、関連するキャッシュを再検証することもできます。
 
 それがどのように機能するか見てみよう！
+
+### 請求書の作成
+新しい請求書を作成する手順は以下の通りです
+1. ユーザーの入力を取り込むフォームを作成します。
+2. Server Actionを作成し、フォームから呼び出します。
+3. Server Action 内で、formData オブジェクトからデータを抽出します。
+4. データを検証し、データベースに挿入する準備をします。
+5. データを挿入し、エラーを処理します。
+6. キャッシュを再検証し、ユーザーを請求書ページにリダイレクトします。
+
+**1. 新しいルートとフォームを作成する**
+
+まず、/invoices フォルダの中に、/create という新しいルートセグメントを page.tsx ファイルとともに追加します
+
+このルートで新しい請求書を作成します。page.tsxファイルの中に、以下のコードを貼り付けてください
+
+```tsx
+// dashboard/invoices/create/page.tsx
+
+import Form from '@/app/ui/invoices/create-form';
+import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
+import { fetchCustomers } from '@/app/lib/data';
+
+export default async function Page() {
+  const customers = await fetchCustomers();
+
+  return (
+    <main>
+      <Breadcrumbs
+        breadcrumbs={[
+          { label: 'Invoices', href: '/dashboard/invoices' },
+          {
+            label: 'Create Invoice',
+            href: '/dashboard/invoices/create',
+            active: true,
+          },
+        ]}
+      />
+      <Form customers={customers} />
+    </main>
+  );
+}
+```
+
+あなたのページはサーバーコンポーネントであり、顧客情報を取得して `<Form>` コンポーネントへ渡している。時間短縮のため、`<Form>` コンポーネントは既に用意してある。
+
+`<Form>` コンポーネントへ移動すると、フォームは以下の内容になっていることが確認できる。
+* 顧客一覧を表示する `<select>`（ドロップダウン）
+* type="number" の `<input>` 要素（金額用）
+* type="radio" の `<input>` 要素が2つ（ステータス用）
+* type="submit" のボタンが1つ
+
+http://localhost:3000/dashboard/invoices/create にアクセスすると、上記のUIが表示される。
