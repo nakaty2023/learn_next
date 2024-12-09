@@ -97,3 +97,64 @@ export default async function Page() {
 * type="submit" のボタンが1つ
 
 http://localhost:3000/dashboard/invoices/create にアクセスすると、上記のUIが表示される。
+
+**2. サーバーアクションの作成**
+
+それでは、フォームが送信されたときに呼び出されるサーバーアクションを作成しましょう。
+
+libディレクトリに移動し、actions.tsという名前の新しいファイルを作成します。このファイルの先頭に、React use server ディレクティブを追加します
+
+```typescript
+// app/lib/actions.ts
+
+'use server';
+```
+use server "を追加することで、ファイル内にエクスポートされたすべての関数をサーバーアクションとしてマークします。これらのサーバー関数は、クライアントコンポーネントやサーバーコンポーネントにインポートして使用することができます。
+
+また、サーバーコンポーネントの中に直接サーバーアクションを記述することもできます。しかし、このコースでは、それらをすべて別のファイルに整理しておきます。
+
+actions.tsファイルに、formDataを受け取る新しい非同期関数を作成します
+
+```typescript
+// app/lib/actions.ts
+
+'use server';
+
+export async function createInvoice(formData: FormData) {}
+```
+
+次に、`<Form>`コンポーネントに、actions.tsファイルからcreateInvoiceをインポートします。`<Form>`要素にaction属性を追加し、createInvoiceアクションを呼び出します。
+
+```tsx
+// app/ui/invoices/create-form.tsx
+
+import { customerField } from '@/app/lib/definitions';
+import Link from 'next/link';
+import {
+  CheckIcon,
+  ClockIcon,
+  CurrencyDollarIcon,
+  UserCircleIcon,
+} from '@heroicons/react/24/outline';
+import { Button } from '@/app/ui/button';
+import { createInvoice } from '@/app/lib/actions';
+
+export default function Form({
+  customers,
+}: {
+  customers: customerField[];
+}) {
+  return (
+    <form action={createInvoice}>
+      // ...
+  )
+}
+```
+
+**知っておいて損はない**
+
+HTMLでは、action属性にURLを渡します。このURLは、フォームのデータを送信する先（通常はAPIエンドポイント）になります。
+
+しかしReactでは、action属性は特別なpropとみなされます。つまり、Reactはアクションを呼び出すことができるように、action属性の上に構築します。
+
+裏では、Server ActionsはPOST APIエンドポイントを作成します。これが、Server Actionsを使用する際にAPIエンドポイントを手動で作成する必要がない理由です。
