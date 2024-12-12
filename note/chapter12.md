@@ -287,3 +287,32 @@ export async function createInvoice(formData: FormData) {
   const date = new Date().toISOString().split('T')[0];
 }
 ```
+
+#### 5. データベースにデータを挿入する
+データベースに必要な値がすべて揃ったので、新しい請求書をデータベースに挿入するSQLクエリを作成し、変数を渡します
+
+```typescript
+// app/lib/actions.ts
+
+import { z } from 'zod';
+import { sql } from '@vercel/postgres';
+
+// ...
+
+export async function createInvoice(formData: FormData) {
+  const { customerId, amount, status } = CreateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+  const amountInCents = amount * 100;
+  const date = new Date().toISOString().split('T')[0];
+
+  await sql`
+    INSERT INTO invoices (customer_id, amount, status, date)
+    VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
+  `;
+}
+```
+
+今はまだ、エラーを処理していない。次の章で処理しよう。とりあえず、次のステップに進みましょう。
