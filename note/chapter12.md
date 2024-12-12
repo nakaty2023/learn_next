@@ -316,3 +316,76 @@ export async function createInvoice(formData: FormData) {
 ```
 
 今はまだ、エラーを処理していない。次の章で処理しよう。とりあえず、次のステップに進みましょう。
+
+#### 6. 再検証とリダイレクト
+Next.jsには、ルートセグメントをユーザーのブラウザに一時的に保存するクライアントサイドルーターキャッシュがあります。プリフェッチとともに、このキャッシュはサーバーへのリクエスト数を減らしながら、ユーザーがルート間をすばやく移動できるようにします。
+
+請求書ルートに表示されるデータを更新するので、このキャッシュをクリアして、サーバーへの新しいリクエストをトリガーします。Next.jsのrevalidatePath関数でこれを行うことができます
+
+```typescript
+// app/lib/actions.ts
+
+'use server';
+
+import { z } from 'zod';
+import { sql } from '@vercel/postgres';
+import { revalidatePath } from 'next/cache';
+
+// ...
+
+export async function createInvoice(formData: FormData) {
+  const { customerId, amount, status } = CreateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+  const amountInCents = amount * 100;
+  const date = new Date().toISOString().split('T')[0];
+
+  await sql`
+    INSERT INTO invoices (customer_id, amount, status, date)
+    VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
+  `;
+
+  revalidatePath('/dashboard/invoices');
+}
+```
+
+データベースが更新されると、/dashboard/invoicesのパスが再検証され、サーバーから新しいデータが取得されます。
+
+この時点で、ユーザーを /dashboard/invoices ページにリダイレクトします。Next.jsのredirect関数を使用します。
+
+```typescript
+// app/lib/actions.ts
+
+'use server';
+
+import { z } from 'zod';
+import { sql } from '@vercel/postgres';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+
+// ...
+
+export async function createInvoice(formData: FormData) {
+  const { customerId, amount, status } = CreateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+  const amountInCents = amount * 100;
+  const date = new Date().toISOString().split('T')[0];
+
+  await sql`
+    INSERT INTO invoices (customer_id, amount, status, date)
+    VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
+  `;
+
+  revalidatePath('/dashboard/invoices');
+  redirect('/dashboard/invoices');
+}
+```
+
+おめでとうございます！最初のサーバーアクションを実装しました。新しい請求書を追加してテストしてみてください
+1. 送信すると、/dashboard/invoicesルートにリダイレクトされます。
+2. テーブルの一番上に新しい請求書が表示されるはずです。
