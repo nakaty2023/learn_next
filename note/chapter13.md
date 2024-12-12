@@ -101,3 +101,55 @@ export async function deleteInvoice(id: string) {
 このようなエラーが表示されると、潜在的な問題を早期に発見できるので、開発中に役立ちます。しかし、突然の失敗を避け、アプリケーションの実行を継続できるようにするために、ユーザーにエラーを表示することも必要です。
 
 そこで、Next.jsのerror.tsxファイルの出番です。
+
+## error.tsxですべてのエラーを処理する
+error.tsxファイルは、ルートセグメントのUI境界を定義するために使用できます。これは、予期しないエラーのためのキャッチオールとして機能し、ユーザーにフォールバックUIを表示することができます。
+
+dashboard/invoicesフォルダ内に、error.tsxという新しいファイルを作成し、以下のコードを貼り付けます
+
+```tsx
+// dashboard/invoices/error.tsx
+
+'use client';
+
+import { useEffect } from 'react';
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    // Optionally log the error to an error reporting service
+    console.error(error);
+  }, [error]);
+
+  return (
+    <main className="flex h-full flex-col items-center justify-center">
+      <h2 className="text-center">Something went wrong!</h2>
+      <button
+        className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
+        onClick={
+          // Attempt to recover by trying to re-render the invoices route
+          () => reset()
+        }
+      >
+        Try again
+      </button>
+    </main>
+  );
+}
+```
+
+上のコードにはいくつか注意すべき点があります
+
+* use client" - error.tsxはClient Componentである必要があります。
+* これは、2つのpropsを受け入れます
+  * error： このオブジェクトは、JavaScriptのネイティブErrorオブジェクトのインスタンスです。
+  * reset： これは、エラー境界をリセットするための関数です。実行されると、この関数はルートセグメントの再レンダリングを試みます。
+
+再度請求書を削除しようとすると、以下のようなUIが表示されるはずです
+
+![エラー画面](./images/image20.png)
