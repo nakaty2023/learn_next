@@ -250,3 +250,22 @@ export async function createInvoice(formData: FormData) {
   });
 }
 ```
+
+##### セント単位での値の保存
+JavaScriptの浮動小数点エラーを排除し、より高い精度を確保するために、データベース内の金銭的な値をセントで格納することは、通常良い習慣です。
+
+金額をセントに変換してみましょう
+
+```typescript
+// app/lib/actions.ts
+
+// ...
+export async function createInvoice(formData: FormData) {
+  const { customerId, amount, status } = CreateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+  const amountInCents = amount * 100;
+}
+```
