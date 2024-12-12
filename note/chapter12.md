@@ -45,7 +45,7 @@ export default function Page() {
 
 それがどのように機能するか見てみよう！
 
-### 請求書の作成
+## 請求書の作成
 新しい請求書を作成する手順は以下の通りです
 1. ユーザーの入力を取り込むフォームを作成します。
 2. Server Actionを作成し、フォームから呼び出します。
@@ -54,7 +54,7 @@ export default function Page() {
 5. データを挿入し、エラーを処理します。
 6. キャッシュを再検証し、ユーザーを請求書ページにリダイレクトします。
 
-#### 1. 新しいルートとフォームを作成する
+### 1. 新しいルートとフォームを作成する
 まず、/invoices フォルダの中に、/create という新しいルートセグメントを page.tsx ファイルとともに追加します
 
 このルートで新しい請求書を作成します。page.tsxファイルの中に、以下のコードを貼り付けてください
@@ -97,7 +97,7 @@ export default async function Page() {
 
 http://localhost:3000/dashboard/invoices/create にアクセスすると、上記のUIが表示される。
 
-#### 2. サーバーアクションの作成
+### 2. サーバーアクションの作成
 それでは、フォームが送信されたときに呼び出されるサーバーアクションを作成しましょう。
 
 libディレクトリに移動し、actions.tsという名前の新しいファイルを作成します。このファイルの先頭に、React use server ディレクティブを追加します
@@ -149,14 +149,14 @@ export default function Form({
 }
 ```
 
-##### 知っておいて損はない
+#### 知っておいて損はない
 HTMLでは、action属性にURLを渡します。このURLは、フォームのデータを送信する先（通常はAPIエンドポイント）になります。
 
 しかしReactでは、action属性は特別なpropとみなされます。つまり、Reactはアクションを呼び出すことができるように、action属性の上に構築します。
 
 裏では、Server ActionsはPOST APIエンドポイントを作成します。これが、Server Actionsを使用する際にAPIエンドポイントを手動で作成する必要がない理由です。
 
-#### 3. formDataからデータを取り出す
+### 3. formDataからデータを取り出す
 actions.tsファイルに戻り、formDataの値を抽出する必要がありますが、使用できるメソッドがいくつかあります。この例では、.get(name)メソッドを使います。
 
 ```typescript
@@ -185,7 +185,7 @@ const rawFormData = Object.fromEntries(formData.entries())
 
 これでデータがオブジェクトの形になったので、作業がとても簡単になります。
 
-#### 4. データの検証と準備
+### 4. データの検証と準備
 フォームデータをデータベースに送信する前に、正しいフォーマットと正しいデータ型であることを確認します。このコースの最初のほうで、請求書テーブルが次のような形式のデータを想定していることを思い出してください
 
 ```typescript
@@ -199,7 +199,7 @@ export type Invoice = {
 ```
 今のところ、フォームから得られるのは customer_id、金額、ステータスだけです。
 
-##### 型の検証と強制
+#### 型の検証と強制
 フォームからのデータがデータベースで期待される型と一致していることを検証することは重要です。例えば、アクションの中にconsole.logを追加するとします
 
 ```typescript
@@ -251,7 +251,7 @@ export async function createInvoice(formData: FormData) {
 }
 ```
 
-##### セント単位での値の保存
+#### セント単位での値の保存
 JavaScriptの浮動小数点エラーを排除し、より高い精度を確保するために、データベース内の金銭的な値をセントで格納することは、通常良い習慣です。
 
 金額をセントに変換してみましょう
@@ -270,7 +270,7 @@ export async function createInvoice(formData: FormData) {
 }
 ```
 
-##### 新しい日付の作成
+#### 新しい日付の作成
 最後に、請求書の作成日として「YYYY-MM-DD」のフォーマットで新しい日付を作成してみましょう
 
 ```typescript
@@ -288,7 +288,7 @@ export async function createInvoice(formData: FormData) {
 }
 ```
 
-#### 5. データベースにデータを挿入する
+### 5. データベースにデータを挿入する
 データベースに必要な値がすべて揃ったので、新しい請求書をデータベースに挿入するSQLクエリを作成し、変数を渡します
 
 ```typescript
@@ -317,7 +317,7 @@ export async function createInvoice(formData: FormData) {
 
 今はまだ、エラーを処理していない。次の章で処理しよう。とりあえず、次のステップに進みましょう。
 
-#### 6. 再検証とリダイレクト
+### 6. 再検証とリダイレクト
 Next.jsには、ルートセグメントをユーザーのブラウザに一時的に保存するクライアントサイドルーターキャッシュがあります。プリフェッチとともに、このキャッシュはサーバーへのリクエスト数を減らしながら、ユーザーがルート間をすばやく移動できるようにします。
 
 請求書ルートに表示されるデータを更新するので、このキャッシュをクリアして、サーバーへの新しいリクエストをトリガーします。Next.jsのrevalidatePath関数でこれを行うことができます
@@ -389,3 +389,67 @@ export async function createInvoice(formData: FormData) {
 おめでとうございます！最初のサーバーアクションを実装しました。新しい請求書を追加してテストしてみてください
 1. 送信すると、/dashboard/invoicesルートにリダイレクトされます。
 2. テーブルの一番上に新しい請求書が表示されるはずです。
+
+## 請求書の更新
+請求書の更新フォームは請求書の作成フォームと似ていますが、データベースのレコードを更新するために請求書IDを渡す必要がある点が異なります。請求書IDを取得し、渡す方法を見てみましょう。
+
+請求書を更新する手順は以下のとおりです
+
+1. 請求書 ID を持つ新しい動的ルートセグメントを作成します。
+2. ページパラメータから請求書IDを読み取ります。
+3. データベースから特定の請求書を取得します。
+4. 請求書データをフォームに事前に入力します。
+5. データベースの請求書データを更新します。
+
+### 1. 請求書IDでダイナミックルートセグメントを作成する
+Next.jsでは、正確なセグメント名がわからず、データに基づいてルートを作成したい場合に、ダイナミックルートセグメントを作成できます。たとえば、ブログ記事のタイトルや商品ページなどです。フォルダの名前を角括弧で囲むことで、動的なルートセグメントを作成できます。例えば、[id]、[post]、[slug]などです。
+
+invoicesフォルダに、[id]という新しいダイナミックルートを作成し、editという新しいルートとpage.tsxファイルを作成します。ファイル構造は次のようになります
+
+![ファイル構造](./images/image18.png)
+
+ `<Table>`コンポーネントの中に、テーブルのレコードから請求書のIDを受け取る`<UpdateInvoice />`ボタンがあることに注目してください。
+
+```tsx
+// app/ui/invoices/table.tsx
+
+export default async function InvoicesTable({
+  query,
+  currentPage,
+}: {
+  query: string;
+  currentPage: number;
+}) {
+  return (
+    // ...
+    <td className="flex justify-end gap-2 whitespace-nowrap px-6 py-4 text-sm">
+      <UpdateInvoice id={invoice.id} />
+      <DeleteInvoice id={invoice.id} />
+    </td>
+    // ...
+  );
+}
+```
+
+`<UpdateInvoice />`コンポーネントに移動し、idプロパティを受け入れるようにリンクのhrefを更新します。動的なルートセグメントにリンクするためにテンプレートリテラルを使うことができます
+
+```tsx
+// app/ui/invoices/buttons.tsx
+
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+
+// ...
+
+export function UpdateInvoice({ id }: { id: string }) {
+  return (
+    <Link
+      href={`/dashboard/invoices/${id}/edit`}
+      className="rounded-md border p-2 hover:bg-gray-100"
+    >
+      <PencilIcon className="w-5" />
+    </Link>
+  );
+}
+```
+
