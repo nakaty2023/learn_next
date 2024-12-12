@@ -508,6 +508,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 Promise.allを使用すると、請求書と顧客の両方を並行して取得できます
 
 ```tsx
+// dashboard/invoices/[id]/edit/page.tsx
+
 import Form from '@/app/ui/invoices/edit-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import { fetchInvoiceById, fetchCustomers } from '@/app/lib/data';
@@ -536,3 +538,76 @@ URLも以下のようにidで更新する必要がある： http://localhost:300
 私たちはキーのインクリメント（1、2、3など）の代わりにUUIDを使用しています。このためURLは長くなりますが、UUIDはIDの衝突のリスクを排除し、グローバルに一意であり、列挙攻撃のリスクを軽減します。
 
 しかし、よりすっきりとしたURLを好むのであれば、自動インクリメントのキーを使う方がよいでしょう。
+
+### 4. サーバーアクションにidを渡す
+最後に、Server Actionにidを渡して、データベースの正しいレコードを更新できるようにします。このようにidを引数として渡すことはできません
+
+```tsx
+// app/ui/invoices/edit-form.tsx
+
+// Passing an id as argument won't work
+<form action={updateInvoice(id)}>
+```
+
+代わりに、JS bindを使ってidをServer Actionに渡すことができます。これにより、Server Actionに渡される値はすべてエンコードされます。
+
+```tsx
+// app/ui/invoices/edit-form.tsx
+
+// ...
+import { updateInvoice } from '@/app/lib/actions';
+
+export default function EditInvoiceForm({
+  invoice,
+  customers,
+}: {
+  invoice: InvoiceForm;
+  customers: CustomerField[];
+}) {
+  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+
+  return <form action={updateInvoiceWithId}></form>;
+}
+```
+
+注：フォームに隠し入力フィールドを使用することもできます（例：`<input type=「hidden」 name=「id」 value={invoice.id} />`）。ただし、値はHTMLソースにフルテキストとして表示されるので、IDのような機密データには不向きです。
+
+次に、actions.tsファイルに、updateInvoiceという新しいアクションを作成します
+
+```typescript
+// app/lib/actions.ts
+
+// Use Zod to update the expected types
+const UpdateInvoice = FormSchema.omit({ id: true, date: true });
+
+// ...
+
+export async function updateInvoice(id: string, formData: FormData) {
+  const { customerId, amount, status } = UpdateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+
+  const amountInCents = amount * 100;
+
+  await sql`
+    UPDATE invoices
+    SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+    WHERE id = ${id}
+  `;
+
+  revalidatePath('/dashboard/invoices');
+  redirect('/dashboard/invoices');
+}
+```
+createInvoiceアクションと同様です
+
+1. formDataからデータを抽出する。
+2. Zodで型を検証します。
+3. 金額をセントに変換します。
+4. 変数をSQLクエリに渡します。
+5. revalidatePath をコールしてクライアントのキャッシュをクリアし、 新しいサーバリクエストを作成します。
+6. redirectを呼び出し、ユーザーを請求書のページにリダイレクトします。
+
+請求書を編集してテストしてみましょう。フォームを送信すると、請求書のページにリダイレクトされ、請求書が更新されるはずです。
