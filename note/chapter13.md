@@ -153,3 +153,103 @@ export default function Error({
 再度請求書を削除しようとすると、以下のようなUIが表示されるはずです
 
 ![エラー画面](./images/image20.png)
+
+## notFound関数で404エラーを処理する
+エラーを潔く処理するもう一つの方法は、notFound関数を使うことです。error.tsxはすべてのエラーをキャッチするのに便利ですが、notFoundは存在しないリソースを取得しようとしたときに使用できます。
+
+例えば、http://localhost:3000/dashboard/invoices/2e94d1ed-d220-449f-9f11-f0bbceed9645/edit
+
+これはデータベースに存在しない偽のUUIDです。
+
+error.tsxが定義されている/invoicesの子ルートなので、すぐにerror.tsxがキックされるのがわかるでしょう。
+
+しかし、より具体的にしたい場合は、アクセスしようとしているリソースが見つからないことをユーザーに伝えるために404エラーを表示することができます。
+
+リソースが見つかっていないことは、data.tsのfetchInvoiceById関数に入り、返された請求書をコンソールロギングすることで確認できます
+
+```typescript
+// app/lib/data.ts
+
+export async function fetchInvoiceById(id: string) {
+  try {
+    // ...
+
+    console.log(invoice); // Invoice is an empty array []
+    return invoice[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch invoice.');
+  }
+}
+```
+
+請求書がデータベースに存在しないことがわかったので、notFoundを使って処理してみましょう。dashboard/invoices/[id]/edit/page.tsxに移動し、'next/navigation'から{ notFound }をインポートします。
+
+そして、請求書が存在しない場合にnotFoundを呼び出す条件を使用します
+
+```tsx
+// dashboard/invoices/[id]/edit/page.tsx
+
+import { fetchInvoiceById, fetchCustomers } from '@/app/lib/data';
+import { updateInvoice } from '@/app/lib/actions';
+import { notFound } from 'next/navigation';
+
+export default async function Page(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const id = params.id;
+  const [invoice, customers] = await Promise.all([
+    fetchInvoiceById(id),
+    fetchCustomers(),
+  ]);
+
+  if (!invoice) {
+    notFound();
+  }
+
+  // ...
+}
+```
+
+完璧です！`<Page>`は、特定の請求書が見つからない場合にエラーを投げるようになりました。ユーザーにエラーUIを表示するには editフォルダ内にnot-found.tsxファイルを作成します。
+
+次に、not-found.tsxファイルの中に、以下のコードを貼り付ける
+
+```tsx
+// dashboard/invoices/[id]/edit/not-found.tsx
+
+import Link from 'next/link';
+import { FaceFrownIcon } from '@heroicons/react/24/outline';
+
+export default function NotFound() {
+  return (
+    <main className="flex h-full flex-col items-center justify-center gap-2">
+      <FaceFrownIcon className="w-10 text-gray-400" />
+      <h2 className="text-xl font-semibold">404 Not Found</h2>
+      <p>Could not find the requested invoice.</p>
+      <Link
+        href="/dashboard/invoices"
+        className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
+      >
+        Go Back
+      </Link>
+    </main>
+  );
+}
+```
+ルートを更新すると、次のようなUIが表示されます
+
+![404 Not Found](./images/image21.png)
+
+notFoundはerror.tsxよりも優先されるので、より具体的なエラーに対処したい場合は、notFoundを使うことができる！
+
+## さらに読む
+Next.jsのエラー処理については、以下のドキュメントをご覧ください
+
+* [エラー処理](https://nextjs.org/docs/app/building-your-application/routing/error-handling)
+* [error.js APIリファレンス](https://nextjs.org/docs/app/api-reference/file-conventions/error)
+* [notFound() API リファレンス](https://nextjs.org/docs/app/api-reference/functions/not-found)
+* [not-found.js APIリファレンス](https://nextjs.org/docs/app/api-reference/file-conventions/not-found)
+
+第13章終了
+
+アプリケーションで優雅にエラーを処理できるようになりましたね。
