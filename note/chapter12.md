@@ -648,3 +648,12 @@ export async function deleteInvoice(id: string) {
 ```
 
 このアクションは /dashboard/invoices パスで呼び出されるので、redirect を呼び出す必要はありません。revalidatePath をコールすると、新しいサーバリクエストが発生し、テーブルが再レンダリングされます。
+
+## さらに読む
+この章では、Server Actionsを使用してデータを変更する方法を学びました。また、revalidatePath APIを使用してNext.jsキャッシュを再検証する方法と、リダイレクトしてユーザーを新しいページにリダイレクトする方法についても学びました。
+
+さらに、Server Actionsを使用したセキュリティについてもお読みください。
+
+第12章終了
+
+おめでとうございます！フォームと React Server Actions を使ってデータを変更する方法を学びました。
