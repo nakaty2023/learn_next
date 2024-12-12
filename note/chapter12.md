@@ -269,3 +269,21 @@ export async function createInvoice(formData: FormData) {
   const amountInCents = amount * 100;
 }
 ```
+
+##### 新しい日付の作成
+最後に、請求書の作成日として「YYYY-MM-DD」のフォーマットで新しい日付を作成してみましょう
+
+```typescript
+// app/lib/actions.ts
+
+// ...
+export async function createInvoice(formData: FormData) {
+  const { customerId, amount, status } = CreateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+  const amountInCents = amount * 100;
+  const date = new Date().toISOString().split('T')[0];
+}
+```
