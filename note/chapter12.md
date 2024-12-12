@@ -500,4 +500,39 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 }
 ```
 
+### 3. 特定の請求書を取得する
+次に
+* fetchInvoiceByIdという新しい関数をインポートし、引数としてidを渡します。
+* fetchCustomersをインポートして、ドロップダウン用の顧客名を取得します。
 
+Promise.allを使用すると、請求書と顧客の両方を並行して取得できます
+
+```tsx
+import Form from '@/app/ui/invoices/edit-form';
+import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
+import { fetchInvoiceById, fetchCustomers } from '@/app/lib/data';
+
+export default async function Page(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const id = params.id;
+  const [invoice, customers] = await Promise.all([
+    fetchInvoiceById(id),
+    fetchCustomers(),
+  ]);
+  // ...
+}
+```
+
+invoiceが未定義の可能性があるため、ターミナルでinvoiceプロップに対して一時的なTSエラーが表示されます。エラー処理を追加する次の章で解決します。
+
+素晴らしい！さて、すべてが正しく配線されていることをテストしてください。http://localhost:3000/dashboard/invoices にアクセスし、鉛筆のアイコンをクリックして請求書を編集します。ナビゲーションの後、請求書の詳細があらかじめ入力されたフォームが表示されるはずです
+
+![請求書の編集ページ](./images/image19.png)
+
+URLも以下のようにidで更新する必要がある： http://localhost:3000/dashboard/invoice/uuid/edit
+
+#### UUID vs. 自動インクリメント・キー
+
+私たちはキーのインクリメント（1、2、3など）の代わりにUUIDを使用しています。このためURLは長くなりますが、UUIDはIDの衝突のリスクを排除し、グローバルに一意であり、列挙攻撃のリスクを軽減します。
+
+しかし、よりすっきりとしたURLを好むのであれば、自動インクリメントのキーを使う方がよいでしょう。
