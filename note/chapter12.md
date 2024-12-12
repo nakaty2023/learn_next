@@ -54,8 +54,7 @@ export default function Page() {
 5. データを挿入し、エラーを処理します。
 6. キャッシュを再検証し、ユーザーを請求書ページにリダイレクトします。
 
-**1. 新しいルートとフォームを作成する**
-
+#### 1. 新しいルートとフォームを作成する
 まず、/invoices フォルダの中に、/create という新しいルートセグメントを page.tsx ファイルとともに追加します
 
 このルートで新しい請求書を作成します。page.tsxファイルの中に、以下のコードを貼り付けてください
@@ -98,8 +97,7 @@ export default async function Page() {
 
 http://localhost:3000/dashboard/invoices/create にアクセスすると、上記のUIが表示される。
 
-**2. サーバーアクションの作成**
-
+#### 2. サーバーアクションの作成
 それでは、フォームが送信されたときに呼び出されるサーバーアクションを作成しましょう。
 
 libディレクトリに移動し、actions.tsという名前の新しいファイルを作成します。このファイルの先頭に、React use server ディレクティブを追加します
@@ -151,16 +149,14 @@ export default function Form({
 }
 ```
 
-**知っておいて損はない**
-
+##### 知っておいて損はない
 HTMLでは、action属性にURLを渡します。このURLは、フォームのデータを送信する先（通常はAPIエンドポイント）になります。
 
 しかしReactでは、action属性は特別なpropとみなされます。つまり、Reactはアクションを呼び出すことができるように、action属性の上に構築します。
 
 裏では、Server ActionsはPOST APIエンドポイントを作成します。これが、Server Actionsを使用する際にAPIエンドポイントを手動で作成する必要がない理由です。
 
-**3. formDataからデータを取り出す**
-
+#### 3. formDataからデータを取り出す
 actions.tsファイルに戻り、formDataの値を抽出する必要がありますが、使用できるメソッドがいくつかあります。この例では、.get(name)メソッドを使います。
 
 ```typescript
@@ -188,3 +184,69 @@ const rawFormData = Object.fromEntries(formData.entries())
 すべてが正しく接続されていることを確認するために、先に進んでフォームを試してみてください。送信すると、フォームに入力したデータがターミナルに記録されます。
 
 これでデータがオブジェクトの形になったので、作業がとても簡単になります。
+
+#### 4. データの検証と準備
+フォームデータをデータベースに送信する前に、正しいフォーマットと正しいデータ型であることを確認します。このコースの最初のほうで、請求書テーブルが次のような形式のデータを想定していることを思い出してください
+
+```typescript
+export type Invoice = {
+  id: string; // Will be created on the database
+  customer_id: string;
+  amount: number; // Stored in cents
+  status: 'pending' | 'paid';
+  date: string;
+};
+```
+今のところ、フォームから得られるのは customer_id、金額、ステータスだけです。
+
+##### 型の検証と強制
+フォームからのデータがデータベースで期待される型と一致していることを検証することは重要です。例えば、アクションの中にconsole.logを追加するとします
+
+```typescript
+console.log(typeof rawFormData.amount);
+```
+
+amountが数値型ではなく文字列型であることにお気づきだろう。これは、type="number" の入力要素は、実際には数値ではなく文字列を返すからです！
+
+型検証を処理するには、いくつかの選択肢があります。手作業で型を検証することもできますが、型検証ライブラリを使えば時間と労力を節約できます。この例では、このタスクを簡略化できるTypeScriptファーストの検証ライブラリであるZodを使用します。
+
+actions.tsファイルでZodをインポートし、フォームオブジェクトの形に合ったスキーマを定義します。このスキーマは、データベースに保存する前にformDataを検証します。
+
+```typescript
+// app/lib/actions.ts
+
+'use server';
+
+import { z } from 'zod';
+
+const FormSchema = z.object({
+  id: z.string(),
+  customerId: z.string(),
+  amount: z.coerce.number(),
+  status: z.enum(['pending', 'paid']),
+  date: z.string(),
+});
+
+const CreateInvoice = FormSchema.omit({ id: true, date: true });
+
+export async function createInvoice(formData: FormData) {
+  // ...
+}
+```
+
+金額フィールドは特に、文字列から数値に強制（変更）されるように設定されており、同時にその型も検証されます。
+
+その後、rawFormDataをCreateInvoiceに渡して型を検証することができます
+
+```typescript
+// app/lib/actions.ts
+
+// ...
+export async function createInvoice(formData: FormData) {
+  const { customerId, amount, status } = CreateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+}
+```
