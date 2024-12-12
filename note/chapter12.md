@@ -611,3 +611,40 @@ createInvoiceアクションと同様です
 6. redirectを呼び出し、ユーザーを請求書のページにリダイレクトします。
 
 請求書を編集してテストしてみましょう。フォームを送信すると、請求書のページにリダイレクトされ、請求書が更新されるはずです。
+
+### 5.請求書の削除
+Server Actionを使って請求書を削除するには、削除ボタンを`<form>`要素で囲み、bindを使ってidをServer Actionに渡します
+
+```tsx
+// app/ui/invoices/buttons.tsx
+
+import { deleteInvoice } from '@/app/lib/actions';
+
+// ...
+
+export function DeleteInvoice({ id }: { id: string }) {
+  const deleteInvoiceWithId = deleteInvoice.bind(null, id);
+
+  return (
+    <form action={deleteInvoiceWithId}>
+      <button type="submit" className="rounded-md border p-2 hover:bg-gray-100">
+        <span className="sr-only">Delete</span>
+        <TrashIcon className="w-4" />
+      </button>
+    </form>
+  );
+}
+```
+
+actions.tsファイルの中に、deleteInvoiceという新しいアクションを作成します。
+
+```typescript
+// app/lib/actions.ts
+
+export async function deleteInvoice(id: string) {
+  await sql`DELETE FROM invoices WHERE id = ${id}`;
+  revalidatePath('/dashboard/invoices');
+}
+```
+
+このアクションは /dashboard/invoices パスで呼び出されるので、redirect を呼び出す必要はありません。revalidatePath をコールすると、新しいサーバリクエストが発生し、テーブルが再レンダリングされます。
