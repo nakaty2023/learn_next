@@ -453,3 +453,51 @@ export function UpdateInvoice({ id }: { id: string }) {
 }
 ```
 
+### 2. ページパラメーターから請求書IDを読み取る
+`<Page>`コンポーネントに戻り、以下のコードを貼り付ける
+
+```tsx
+// app/dashboard/invoices/[id]/edit/page.tsx
+
+import Form from '@/app/ui/invoices/edit-form';
+import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
+import { fetchCustomers } from '@/app/lib/data';
+
+export default async function Page() {
+  return (
+    <main>
+      <Breadcrumbs
+        breadcrumbs={[
+          { label: 'Invoices', href: '/dashboard/invoices' },
+          {
+            label: 'Edit Invoice',
+            href: `/dashboard/invoices/${id}/edit`,
+            active: true,
+          },
+        ]}
+      />
+      <Form invoice={invoice} customers={customers} />
+    </main>
+  );
+}
+```
+
+（edit-form.tsxファイルから）別のフォームをインポートすることを除いて、`/create` invoiceページと似ていることに注目してください。このフォームには、顧客の名前、請求書の金額、ステータスのdefaultValueがあらかじめ入力されているはずです。フォームフィールドに事前に入力するには、idを使用して特定の請求書を取得する必要があります。
+
+searchParamsに加えて、ページコンポーネントはparamsと呼ばれるプロップも受け付けます。propを受け取るように`<Page>`コンポーネントを更新してください
+
+```tsx
+// app/dashboard/invoices/[id]/edit/page.tsx
+
+import Form from '@/app/ui/invoices/edit-form';
+import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
+import { fetchCustomers } from '@/app/lib/data';
+
+export default async function Page(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const id = params.id;
+  // ...
+}
+```
+
+
