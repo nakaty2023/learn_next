@@ -22,3 +22,29 @@
 * 認可は次のステップです。ユーザーの身元が確認されると、認可はアプリケーションのどの部分の使用を許可するかを決定する。
 
 つまり、認証はあなたが誰であるかをチェックし、認可はあなたがアプリケーションで何ができるか、何にアクセスできるかを決定します。
+
+## ログインルートの作成
+まず、アプリケーションに `/login` という新しいルートを作成し、次のコードを貼り付けます
+
+```tsx
+// app/login/page.tsx
+
+import AcmeLogo from '@/app/ui/acme-logo';
+import LoginForm from '@/app/ui/login-form';
+
+export default function LoginPage() {
+  return (
+    <main className="flex items-center justify-center md:h-screen">
+      <div className="relative mx-auto flex w-full max-w-[400px] flex-col space-y-2.5 p-4 md:-mt-32">
+        <div className="flex h-20 w-full items-end rounded-lg bg-blue-500 p-3 md:h-36">
+          <div className="w-32 text-white md:w-36">
+            <AcmeLogo />
+          </div>
+        </div>
+        <LoginForm />
+      </div>
+    </main>
+  );
+}
+```
+ページが`<LoginForm />`をインポートしていることに気づくでしょう。
