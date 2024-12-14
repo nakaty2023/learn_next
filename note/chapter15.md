@@ -143,3 +143,21 @@ export const config = {
 ここでは、NextAuth.jsをauthConfigオブジェクトで初期化し、authプロパティをエクスポートしています。また、Middleware の matcher オプションを使って、特定のパスで実行するように指定しています。
 
 このタスクに Middleware を使用する利点は、Middleware が認証を確認するまで保護されたルートのレンダリングが開始されないため、アプリケーションのセキュリティとパフォーマンスの両方が向上することです。
+
+### パスワードのハッシュ化
+パスワードをデータベースに保存する前にハッシュ化するのは良い習慣です。ハッシュ化することで、パスワードがランダムな固定長の文字列に変換され、ユーザーのデータが公開されてもセキュリティのレイヤーが提供されます。
+
+seed.jsファイルでは、bcryptというパッケージを使って、ユーザーのパスワードをデータベースに保存する前にハッシュ化しています。この章の後半で、ユーザーが入力したパスワードがデータベースのパスワードと一致するかどうかを比較するために、再びこのパッケージを使用します。ただし、bcryptパッケージ用に別のファイルを作成する必要がある。これは、bcryptがNext.jsミドルウェアでは利用できないNode.js APIに依存しているためです。
+
+auth.tsという新しいファイルを作成し、authConfigオブジェクトを展開します
+
+```typescript
+// auth.ts
+
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
+
+export const { auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+});
+```
