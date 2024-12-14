@@ -351,3 +351,87 @@ export async function createInvoice(prevState: State, formData: FormData) {
 * `aria-describedby="customer-error"`： これは、select要素とエラーメッセージコンテナの関係を確立します。これは、id=「customer-error」 のコンテナが select 要素を記述していることを示します。スクリーン・リーダーは、ユーザーがエラーを通知するためにセレクト・ボックスと対話するときに、この説明を読みます。
 * `id="customer-error"`： このid属性は、セレクト入力のエラーメッセージを保持するHTML要素を一意に識別します。これは、aria-describedbyが関係を確立するために必要です。
 * `aria-live="polite"`： div 内のエラーが更新されたとき、スクリーンリーダーはユーザーに丁寧に通知する必要があります。コンテンツが変更されたとき（例えば、ユーザがエラーを修正したとき）、スクリーン・リーダはこれらの変更をアナウンスしますが、ユーザの邪魔にならないように、ユーザがアイドルであるときに限ります。
+
+## 練習：エリアラベルの追加
+上記の例を使って、残りのフォームフィールドにエラーを追加します。また、フィールドが欠けている場合は、フォームの一番下にメッセージを表示します。UIはこのようになるはずです
+
+![エリアラベル UI](./images/image22.png)
+
+準備ができたら、pnpm lintを実行して、ariaラベルが正しく使われているかチェックしてください。
+
+この章で学んだ知識を活かして、edit-form.tsxコンポーネントにフォームバリデーションを追加してみましょう。
+
+次のことが必要です：
+
+* edit-form.tsxコンポーネントにuseActionStateを追加する。
+* Zodからのバリデーションエラーを処理するためにupdateInvoiceアクションを編集します。
+* コンポーネントにエラーを表示し、ariaラベルを追加してアクセシビリティを向上させます。
+
+準備ができたら、下のコードスニペットを展開して解決策を見てください
+
+Edit Invoice Form:
+```tsx
+// app/ui/invoices/edit-form.tsx
+
+// ...
+import { updateInvoice, State } from '@/app/lib/actions';
+import { useActionState } from 'react';
+
+export default function EditInvoiceForm({
+  invoice,
+  customers,
+}: {
+  invoice: InvoiceForm;
+  customers: CustomerField[];
+}) {
+  const initialState: State = { message: null, errors: {} };
+  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+  const [state, formAction] = useActionState(updateInvoiceWithId, initialState);
+
+  return <form action={formAction}></form>;
+}
+```
+
+Server Action:
+```typescript
+// app/lib/actions.ts
+
+export async function updateInvoice(
+  id: string,
+  prevState: State,
+  formData: FormData,
+) {
+  const validatedFields = UpdateInvoice.safeParse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing Fields. Failed to Update Invoice.',
+    };
+  }
+
+  const { customerId, amount, status } = validatedFields.data;
+  const amountInCents = amount * 100;
+
+  try {
+    await sql`
+      UPDATE invoices
+      SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+      WHERE id = ${id}
+    `;
+  } catch (error) {
+    return { message: 'Database Error: Failed to Update Invoice.' };
+  }
+
+  revalidatePath('/dashboard/invoices');
+  redirect('/dashboard/invoices');
+}
+```
+
+第14章を完了しました
+
+Reactフォームステータスとサーバーサイドバリデーションを使ってフォームのアクセシビリティを改善する方法を学びました。
