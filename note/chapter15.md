@@ -91,3 +91,55 @@ export const authConfig = {
 ```
 
 pages オプションを使って、カスタムサインイン、サインアウト、エラーページのルートを指定できます。これは必須ではありませんが、pages オプションに signIn: '/login' を追加することで、ユーザーは NextAuth.js のデフォルトページではなく、カスタムログインページにリダイレクトされます。
+
+## Next.jsミドルウェアでルートを保護する
+次に、ルートを保護するロジックを追加します。ログインしていないユーザーがダッシュボードのページにアクセスできないようにします。
+
+```typescript
+// auth.config.ts
+import type { NextAuthConfig } from 'next-auth';
+
+export const authConfig = {
+  pages: {
+    signIn: '/login',
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false; // Redirect unauthenticated users to login page
+      } else if (isLoggedIn) {
+        return Response.redirect(new URL('/dashboard', nextUrl));
+      }
+      return true;
+    },
+  },
+  providers: [], // Add providers with an empty array for now
+} satisfies NextAuthConfig;
+```
+
+authorizedコールバックは、リクエストがNext.jsミドルウェア経由でページにアクセスすることを許可されているかどうかを確認するために使用されます。リクエストが完了する前に呼び出され、auth プロパティと request プロパティを持つオブジェクトを受け取ります。authプロパティにはユーザーのセッションが含まれ、requestプロパティには受信リクエストが含まれます。
+
+プロバイダオプションは配列で、さまざまなログインオプションを列挙します。今のところ、NextAuthの設定を満たすための空の配列です。これについては、資格情報プロバイダの追加で詳しく説明します。
+
+次に、authConfigオブジェクトをMiddlewareファイルにインポートします。プロジェクトのルートに middleware.ts というファイルを作成し、以下のコードを貼り付けます
+
+```typescript
+// middleware.ts
+
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
+
+export default NextAuth(authConfig).auth;
+
+export const config = {
+  // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
+  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
+};
+```
+
+ここでは、NextAuth.jsをauthConfigオブジェクトで初期化し、authプロパティをエクスポートしています。また、Middleware の matcher オプションを使って、特定のパスで実行するように指定しています。
+
+このタスクに Middleware を使用する利点は、Middleware が認証を確認するまで保護されたルートのレンダリングが開始されないため、アプリケーションのセキュリティとパフォーマンスの両方が向上することです。
