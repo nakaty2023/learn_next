@@ -161,3 +161,25 @@ export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
 });
 ```
+
+## 認証情報プロバイダーの追加
+次に、NextAuth.jsのプロバイダオプションを追加します。プロバイダとは、GoogleやGitHubなど、さまざまなログインオプションを列挙する配列です。このコースでは、Credentials プロバイダーのみに焦点を当てます。
+
+Credentials プロバイダを使うと、ユーザ名とパスワードでログインできるようになります。
+
+```typescript
+// auth.ts
+
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
+import Credentials from 'next-auth/providers/credentials';
+
+export const { auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  providers: [Credentials({})],
+});
+```
+
+知っておいて損はない：
+
+ここではCredentialsプロバイダを使用していますが、一般的にはOAuthやメールプロバイダなどの代替プロバイダを使用することを推奨します。オプションの一覧は、NextAuth.jsのドキュメントをご覧ください。
