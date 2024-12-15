@@ -44,3 +44,17 @@
 ```html
 <link rel="icon" href="path/to/favicon.ico" />
 ```
+
+## メタデータの追加
+Next.jsには、アプリケーションのメタデータを定義するためのMetadata APIがあります。アプリケーションにメタデータを追加するには、2つの方法があります
+
+* 設定ベース： 静的なメタデータオブジェクトまたは動的なgenerateMetadata関数をlayout.jsまたはpage.jsファイルにエクスポートします。
+* ファイルベース： Next.jsには、メタデータ用に特別に使用されるさまざまなファイルがあります：
+  * favicon.ico、apple-icon.jpg、icon.jpg：ファビコンやアイコンに使用します。
+  * opengraph-image.jpg、twitter-image.jpg：ソーシャルメディアの画像に使用。
+  * robots.txt： 検索エンジンのクロールを指示する
+  * sitemap.xml： ウェブサイトの構造に関する情報を提供
+
+これらのファイルは、静的なメタデータとして使用することも、プロジェクト内でプログラム的に生成することもできます。
+
+どちらの方法でも、Next.jsは関連する`<head>`要素を自動的に生成します。
