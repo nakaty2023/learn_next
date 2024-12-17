@@ -139,3 +139,18 @@ export const metadata: Metadata = {
 ```
 
 dashboard/invoicesページに移動し、`<head>`要素を確認してください。ページタイトルが「Invoices｜Acme Dashboard」になっていることが確認できるはずです。
+
+## 実践：メタデータの追加
+メタデータについて学んだので、他のページにタイトルを追加して練習しましょう：
+
+1. /login ページ
+2. /dashboard/ ページ
+3. /dashboard/customers ページ
+4. /dashboard/invoices/create ページ
+5. /dashboard/invoices/[id]/edit ページ
+
+Next.jsのメタデータAPIは強力で柔軟なので、アプリケーションのメタデータを完全に制御できます。ここでは、基本的なメタデータの追加方法を紹介しましたが、キーワード、robots、canonicalなど、複数のフィールドを追加することができます。自由にドキュメントを調べて、アプリケーションに必要なメタデータを追加してください。
+
+第16章終了
+
+おめでとうございます！アプリケーションにメタデータを追加し、メタデータ API について学びました。
