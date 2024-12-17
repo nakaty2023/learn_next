@@ -67,3 +67,75 @@ publicフォルダに、favicon.icoとopengraph-image.jpgの2つの画像があ�
 こうすると、Next.jsは自動的にこれらのファイルをファビコンとOG画像として認識し、使用します。このことは、開発ツールでアプリケーションの`<head>`要素をチェックすることで確認できます。
 
 知っておいて損はありません： ImageResponseコンストラクタを使用して、動的なOG画像を作成することもできます。
+
+### ページのタイトルと説明
+layout.jsまたはpage.jsファイルからmetadataオブジェクトをインクルードして、タイトルや説明文などのページ情報を追加することもできます。layout.js内のメタデータは、それを使用するすべてのページに継承されます。
+
+ルート・レイアウトで、以下のフィールドを持つ新しいメタデータ・オブジェクトを作成してください
+
+```tsx
+// app/layout.tsx
+
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Acme Dashboard',
+  description: 'The official Next.js Course Dashboard, built with App Router.',
+  metadataBase: new URL('https://next-learn-dashboard.vercel.sh'),
+};
+
+export default function RootLayout() {
+  // ...
+}
+```
+
+Next.jsは自動的にタイトルとメタデータをアプリケーションに追加します。
+
+しかし、特定のページにカスタムタイトルを追加したい場合はどうすればよいでしょうか？これは、ページ自体にメタデータオブジェクトを追加することで実現できます。入れ子になったページのメタデータは、親のメタデータを上書きします。
+
+例えば、/dashboard/invoicesページでは、ページタイトルを更新することができます
+
+```tsx
+// app/dashboard/invoices/page.tsx
+
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Invoices | Acme Dashboard',
+};
+```
+
+これは機能しますが、すべてのページでアプリケーションのタイトルを繰り返しています。会社名のように何かが変われば、すべてのページでそれを更新しなければなりません。
+
+代わりに、メタデータオブジェクトのtitle.templateフィールドを使って、ページタイトルのテンプレートを定義することができます。このテンプレートには、ページタイトルのほか、任意の情報を含めることができます。
+
+ルート・レイアウトで、テンプレートを含むようにメタデータ・オブジェクトを更新してください
+
+```tsx
+// app/layout.tsx
+
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | Acme Dashboard',
+    default: 'Acme Dashboard',
+  },
+  description: 'The official Next.js Learn Dashboard built with App Router.',
+  metadataBase: new URL('https://next-learn-dashboard.vercel.sh'),
+};
+```
+
+テンプレート内の%sは、特定のページタイトルに置き換えられます。
+
+これで、/dashboard/invoicesページにページタイトルを追加できます
+
+```tsx
+// app/dashboard/invoices/page.tsx
+
+export const metadata: Metadata = {
+  title: 'Invoices',
+};
+```
+
+dashboard/invoicesページに移動し、`<head>`要素を確認してください。ページタイトルが「Invoices｜Acme Dashboard」になっていることが確認できるはずです。
